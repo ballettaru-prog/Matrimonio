@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ruggero e Claudia</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Work+Sans:wght@400;500;600&family=Playfair+Display:wght@500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#f6f1e4;
+  --bg-panel:#fffdf7;
+  --ink:#1f2a24;
+  --ink-soft:#5b665c;
+  --accent:#b3667a;
+  --accent2:#af8a3f;
+  --line:#d9d0ba;
+  --green:#5f8259;
+  --red:#a8503f;
+  --orange:#c1893f;
+  --font-display:'Fraunces', serif;
+  --font-body:'Inter', sans-serif;
+  --radius:14px;
+  --bg-image: none;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font-body);
+  color:var(--ink);
+  background: var(--bg-image), linear-gradient(var(--bg), var(--bg));
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
+  min-height:100vh;
+}
+#app{min-height:100vh; display:flex; flex-direction:column;}
+a{color:inherit;}
+button{font-family:inherit; cursor:pointer;}
+input,select,textarea{font-family:inherit; font-size:14px;}
+
+.wrap{max-width:980px; margin:0 auto; padding:0 24px; width:100%;}
+.center-wrap{flex:1; display:flex; align-items:center; justify-content:center; padding:24px;}
+
+.thread{
+  width:100%; height:14px; margin:6px 0 18px 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='14'><path d='M0 7 Q 15 0 30 7 T 60 7 T 90 7 T 120 7' fill='none' stroke='%23b3667a' stroke-width='1.4' stroke-linecap='round'/></svg>");
+  background-repeat:repeat-x; opacity:0.6;
+}
+
+.card{
+  background:var(--bg-panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:28px;
+  box-shadow:0 1px 2px rgba(31,42,36,0.04);
+}
+.eyebrow{
+  font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--accent2); font-weight:600; margin:0 0 6px 0;
+}
+h1,h2,h3{font-family:var(--font-display); font-weight:600; margin:0 0 8px 0; color:var(--ink);}
+h1{font-size:clamp(28px,4vw,42px); font-style:italic; font-weight:500;}
+h2{font-size:22px;}
+h3{font-size:16px;}
+p{line-height:1.55; color:var(--ink-soft); margin:0 0 12px 0;}
+
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; letter-spacing:.02em;}
+.field input, .field select, .field textarea{
+  width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:9px;
+  background:#fff; color:var(--ink); outline:none;
+}
+.field input:focus, .field select:focus, .field textarea:focus{border-color:var(--accent);}
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:10px 18px; border-radius:999px; border:1px solid transparent;
+  font-size:14px; font-weight:600; letter-spacing:.01em; transition:opacity .15s, transform .1s;
+}
+.btn:active{transform:scale(0.98);}
+.btn-primary{background:var(--ink); color:#fdfbf4;}
+.btn-primary:hover{opacity:.88;}
+.btn-accent{background:var(--accent); color:#fff;}
+.btn-accent:hover{opacity:.88;}
+.btn-ghost{background:transparent; color:var(--ink); border-color:var(--line);}
+.btn-ghost:hover{border-color:var(--ink);}
+.btn-outline-red{background:#fff; color:var(--red); border-color:var(--red);}
+.btn-mail{background:#fff; color:var(--accent2); border-color:var(--accent2);}
+.btn-wa{background:#fff; color:#3f8a5a; border-color:#3f8a5a;}
+.btn-sm{padding:6px 13px; font-size:12.5px;}
+.btn[disabled]{opacity:.4; cursor:default;}
+.btn-block{width:100%;}
+
+.error-msg{color:var(--red); font-size:13px; margin:-6px 0 14px 0;}
+.hint{font-size:12.5px; color:var(--ink-soft); margin-top:4px;}
+.mono-hint{font-size:12px; color:var(--accent2); font-weight:600; margin-top:2px;}
+
+.seal{width:13px;height:13px;border-radius:50%; display:inline-block; box-shadow: inset 0 -1px 2px rgba(0,0,0,.25), 0 0 0 2px rgba(255,255,255,.6);}
+.seal.green{background:var(--green);}
+.seal.red{background:var(--red);}
+.seal.orange{background:var(--orange);}
+.status-row{display:flex; align-items:center; gap:8px;}
+.status-label{font-size:13px; color:var(--ink-soft);}
+
+.topbar{
+  background:rgba(255,253,247,0.85); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); position:sticky; top:0; z-index:10;
+}
+.topbar-inner{display:flex; align-items:center; justify-content:space-between; padding:14px 24px; max-width:980px; margin:0 auto; flex-wrap:wrap; gap:10px;}
+.brand{font-family:var(--font-display); font-style:italic; font-size:19px;}
+.nav-tabs{display:flex; gap:6px; flex-wrap:wrap;}
+.nav-tab{
+  padding:7px 14px; border-radius:999px; font-size:13.5px; font-weight:600;
+  background:transparent; border:1px solid transparent; color:var(--ink-soft);
+}
+.nav-tab.active{background:var(--ink); color:#fdfbf4;}
+.topbar-actions{display:flex; align-items:center; gap:10px;}
+
+main{flex:1; padding:32px 0 60px 0;}
+
+.rsvp-choice{display:flex; gap:12px; margin:18px 0;}
+.rsvp-btn{flex:1; padding:16px; border-radius:12px; border:1.5px solid var(--line); background:#fff; text-align:center; font-weight:600; font-size:15px;}
+.rsvp-btn.yes.selected{border-color:var(--green); background:rgba(95,130,89,0.1); color:var(--green);}
+.rsvp-btn.no.selected{border-color:var(--red); background:rgba(168,80,63,0.1); color:var(--red);}
+.rsvp-btn:hover{border-color:var(--accent);}
+
+.info-block{margin-bottom:26px;}
+.info-block .addr{font-size:14px; color:var(--ink-soft); margin-bottom:10px;}
+.map-link-btn{margin:6px 0 4px 0;}
+.tag-list{list-style:none; padding:0; margin:10px 0 0 0; display:flex; flex-direction:column; gap:6px;}
+.tag-list li{font-size:13.5px; color:var(--ink-soft); padding-left:16px; position:relative;}
+.tag-list li:before{content:'—'; position:absolute; left:0; color:var(--accent2);}
+
+table{width:100%; border-collapse:collapse; font-size:13.5px;}
+th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); padding:8px 10px; border-bottom:1px solid var(--line);}
+td{padding:9px 10px; border-bottom:1px solid #ece5d2; vertical-align:middle;}
+tr:hover td{background:rgba(179,102,122,0.04);}
+
+.toolbar{display:flex; gap:10px; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap;}
+.toolbar input[type=text]{width:220px;}
+
+.stat-row{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:22px;}
+.stat{flex:1; min-width:120px; background:var(--bg-panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px;}
+.stat .num{font-family:var(--font-display); font-size:26px; font-style:italic;}
+.stat .lbl{font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft);}
+
+.list-item-row{display:flex; gap:10px; align-items:flex-start; padding:12px; border:1px solid var(--line); border-radius:10px; margin-bottom:10px; background:#fff;}
+.list-item-row .grow{flex:1;}
+.chip{display:inline-block; font-size:11px; padding:2px 9px; border-radius:999px; background:rgba(175,138,63,0.15); color:var(--accent2); font-weight:600;}
+.chip.wait{background:rgba(193,137,63,0.18); color:var(--orange);}
+
+.swatch-row{display:flex; gap:10px; flex-wrap:wrap;}
+.swatch-row .field{flex:1; min-width:140px;}
+input[type=color]{padding:2px; height:38px;}
+
+.invite-row{border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:12px; background:#fff;}
+.invite-row-top{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+.invite-contacts{display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;}
+.invite-contacts input{padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-size:13px; width:200px;}
+.invite-actions{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;}
+.sent-note{font-size:11.5px; color:var(--ink-soft); margin-top:6px;}
+
+.toast{
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+  background:var(--ink); color:#fdfbf4; padding:10px 18px; border-radius:999px; font-size:13px;
+  box-shadow:0 6px 20px rgba(0,0,0,.2); z-index:100; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(-6px);}
+
+.footer-note{text-align:center; color:var(--ink-soft); font-size:12px; margin-top:36px;}
+
+@media(max-width:640px){
+  .topbar-inner{flex-direction:column; align-items:flex-start; gap:10px;}
+  .rsvp-choice{flex-direction:column;}
+  .toolbar{flex-direction:column; align-items:stretch;}
+  .toolbar input[type=text]{width:100%;}
+  .invite-contacts input{width:100%;}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =============================================================================
+   CONFIGURAZIONE — incolla qui l'URL del tuo Web App di Google Apps Script
+   (lo ottieni dopo aver pubblicato lo script collegato al Google Sheet, vedi
+   le istruzioni fornite insieme a questo file). Nessuna fatturazione richiesta:
+   usa solo il tuo account Google normale.
+   ========================================================================== */
+const APPS_SCRIPT_URL = "INSERISCI_QUI";
+
+const backendReady = APPS_SCRIPT_URL && APPS_SCRIPT_URL !== "INSERISCI_QUI";
+
+async function apiRead(action, params){
+  const qs = new URLSearchParams(Object.assign({action}, params||{})).toString();
+  const res = await fetch(APPS_SCRIPT_URL + '?' + qs);
+  return await res.json();
+}
+async function apiWrite(action, params){
+  const res = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(Object.assign({action}, params||{}))
+  });
+  return await res.json();
+}
+
+/* ============================= STATE ============================= */
+let state = {
+  settings: null,
+  guests: [],            // populated only for admin sessions
+  currentUser: null,     // {type:'admin'} | {type:'guest'}
+  guestRecord: null,     // populated only for the logged-in guest's own record
+  view: 'login',
+  adminTab: 'invitati',
+  guestTab: 'save-the-date',
+  invitiSubTab: 'da-invitare',
+  loading: true,
+  loginError: '',
+  prefillGuest: '',
+  busy: false
+};
+
+function defaultSettings(){
+  return {
+    coupleNames: 'Ruggero & Claudia',
+    password: 'ruggeroclaudia',
+    adminUsername: 'sposi',
+    allowSelfRegister: false,
+    publicBaseUrl: '',
+    welcomeTitle: 'Ci sposiamo',
+    weddingDateLabel: '',
+    welcomeMessage: 'Non vediamo l\'ora di festeggiare questo giorno con voi. Qui trovate tutte le informazioni per il grande giorno.',
+    ceremony: { name:'', address:'', parking: [] },
+    reception: { name:'', address:'', logoUrl:'' },
+    hotels: [],
+    templates: {
+      invite: {
+        subject: 'Save the date - {sposi}',
+        body: 'Ciao {nome}!\n\n{sposi} vi aspettano per festeggiare insieme il loro matrimonio.\n\nPer confermare la presenza e trovare tutte le informazioni (luogo, orari, alloggi), entra sul nostro sito:\n{link}\n\nUsername: {username}\nPassword: quella che vi abbiamo comunicato a voce\n\nA presto!'
+      },
+      reminder: {
+        subject: 'Un piccolo promemoria - {sposi}',
+        body: 'Ciao {nome},\n\nnon abbiamo ancora ricevuto la tua risposta al save the date. Ci farebbe piacere sapere se ci sarai!\n\nPuoi rispondere qui:\n{link}\n\nGrazie di cuore, {sposi}'
+      }
+    },
+    theme: {
+      bg:'#f6f1e4', panel:'#fffdf7', ink:'#1f2a24', accent:'#b3667a', accent2:'#af8a3f',
+      fontPair:'botanical', bgImage:'', heroImage:''
+    }
+  };
+}
+
+const FONT_PAIRS = {
+  botanical: { display:"'Fraunces', serif", body:"'Inter', sans-serif", label:'Fraunces + Inter' },
+  romantico: { display:"'Cormorant Garamond', serif", body:"'Work Sans', sans-serif", label:'Cormorant + Work Sans' },
+  moderno: { display:"'Playfair Display', serif", body:"'Inter', sans-serif", label:'Playfair + Inter' },
+  classico: { display:"'Fraunces', serif", body:"'Source Sans 3', sans-serif", label:'Fraunces + Source Sans' }
+};
+
+/* ============================= USERNAME / SLUG ============================= */
+function slugify(name){
+  return (name||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-zA-Z0-9]/g,'')
+    .toLowerCase();
+}
+
+/* ============================= STORAGE: SETTINGS (Google Sheet via Apps Script) ============================= */
+async function loadSettings(){
+  try{
+    const res = await apiRead('getSettings', {});
+    state.settings = (res && res.data) ? res.data : defaultSettings();
+    if(!res || !res.data) await apiWrite('setSettings', {data: state.settings});
+  }catch(e){ state.settings = defaultSettings(); }
+  if(!state.settings.templates) state.settings.templates = defaultSettings().templates;
+  if(!state.settings.theme) state.settings.theme = defaultSettings().theme;
+  if(state.settings.reception && state.settings.reception.logoUrl===undefined) state.settings.reception.logoUrl='';
+}
+async function saveSettings(){
+  try{
+    await apiWrite('setSettings', {data: state.settings});
+    showToast('Impostazioni salvate');
+  }catch(e){ showToast('Errore nel salvataggio'); }
+}
+
+/* ============================= STORAGE: GUESTS (one row per guest in the "Guests" sheet tab) =============================
+   Each guest is one row in the Google Sheet, keyed by username. A guest session only ever
+   asks the backend for its own username, so other guests' data (brunch invites, contacts,
+   rsvp) is never loaded into a guest's browser. Only the sposi (admin) session asks for
+   the full list. */
+function normalizeGuestObj(g){
+  if(g.email===undefined) g.email='';
+  if(g.phone===undefined) g.phone='';
+  if(g.inviteSentAt===undefined) g.inviteSentAt=null;
+  if(g.reminderSentAt===undefined) g.reminderSentAt=null;
+  if(g.brunchInvite===undefined) g.brunchInvite=false;
+  if(g.ageCategory===undefined) g.ageCategory='adulto';
+  return g;
+}
+async function fetchGuestByUsername(username){
+  try{
+    const res = await apiRead('getGuest', {username});
+    return res && res.data ? normalizeGuestObj(res.data) : null;
+  }catch(e){ return null; }
+}
+async function saveGuestRecord(g){
+  try{ await apiWrite('setGuest', {username: g.username, data: g}); return true; }
+  catch(e){ showToast('Errore nel salvataggio'); return false; }
+}
+async function deleteGuestRecord(username){
+  try{ await apiWrite('deleteGuest', {username}); }catch(e){}
+}
+async function fetchAllGuests(){
+  try{
+    const res = await apiRead('getAllGuests', {});
+    return (res && res.data ? res.data : []).map(normalizeGuestObj);
+  }catch(e){ return []; }
+}
+async function loadAllGuestsForAdmin(){
+  state.guests = await fetchAllGuests();
+}
+
+/* ============================= HELPERS ============================= */
+function esc(str){
+  return String(str==null?'':str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function mapLinkButton(address){
+  if(!address) return '';
+  const url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(address);
+  return `<a href="${url}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm map-link-btn">📍 Apri in Google Maps</a>`;
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function applyTheme(){
+  const th = state.settings.theme;
+  const root = document.documentElement.style;
+  root.setProperty('--bg', th.bg);
+  root.setProperty('--bg-panel', th.panel);
+  root.setProperty('--ink', th.ink);
+  root.setProperty('--accent', th.accent);
+  root.setProperty('--accent2', th.accent2);
+  const fp = FONT_PAIRS[th.fontPair] || FONT_PAIRS.botanical;
+  root.setProperty('--font-display', fp.display);
+  root.setProperty('--font-body', fp.body);
+  root.setProperty('--bg-image', th.bgImage ? `linear-gradient(rgba(246,241,228,0.55), rgba(246,241,228,0.55)), url('${th.bgImage}')` : 'none');
+}
+function removeThemeImage(field){
+  state.settings.theme[field] = '';
+  applyTheme(); saveSettings(); render();
+}
+function setThemeImageUrl(field, value){
+  state.settings.theme[field] = value.trim();
+  applyTheme(); saveSettings(); render();
+}
+function statusOf(g, field){
+  const val = field === 'rsvp' ? g.rsvp : g.brunchRsvp;
+  if(val === 'yes') return {cls:'green', label: field==='rsvp' ? 'Confermato' : 'Sì al brunch'};
+  if(val === 'no') return {cls:'red', label: field==='rsvp' ? 'Non parteciperà' : 'No al brunch'};
+  return {cls:'orange', label:'In attesa'};
+}
+function personalLink(username){
+  const base = state.settings.publicBaseUrl
+    ? state.settings.publicBaseUrl.trim().replace(/\/$/, '')
+    : (window.location.origin + window.location.pathname);
+  return base + '?g=' + encodeURIComponent(username);
+}
+function fillTemplate(tpl, guest){
+  const link = personalLink(guest.username);
+  const rep = (t)=> t
+    .replaceAll('{nome}', guest.name)
+    .replaceAll('{username}', guest.username)
+    .replaceAll('{sposi}', state.settings.coupleNames)
+    .replaceAll('{link}', link)
+    .replaceAll('{data}', state.settings.weddingDateLabel||'');
+  return { subject: rep(tpl.subject), body: rep(tpl.body) };
+}
+function stripPhone(phone){ return (phone||'').replace(/[^\d]/g,''); }
+function mailtoUrl(guest, tpl){
+  const f = fillTemplate(tpl, guest);
+  return 'mailto:' + encodeURIComponent(guest.email) + '?subject=' + encodeURIComponent(f.subject) + '&body=' + encodeURIComponent(f.body);
+}
+function waUrl(guest, tpl){
+  const f = fillTemplate(tpl, guest);
+  const digits = stripPhone(guest.phone);
+  return 'https://wa.me/' + digits + '?text=' + encodeURIComponent(f.subject + '\n\n' + f.body);
+}
+
+/* ============================= AUTH ============================= */
+async function handleLogin(){
+  const rawUsername = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value;
+  state.loginError = '';
+  if(!rawUsername || !password){ state.loginError = 'Inserisci nome utente e password.'; render(); return; }
+  if(password !== state.settings.password){ state.loginError = 'Password non corretta.'; render(); return; }
+
+  if(rawUsername.toLowerCase() === state.settings.adminUsername.toLowerCase()){
+    state.busy = true; render();
+    state.currentUser = {type:'admin'};
+    await loadAllGuestsForAdmin();
+    state.busy = false;
+    state.view = 'admin';
+    render();
+    return;
+  }
+
+  const username = slugify(rawUsername);
+  state.busy = true; render();
+  let guest = await fetchGuestByUsername(username);
+  if(!guest){
+    if(!state.settings.allowSelfRegister){
+      state.busy = false;
+      state.loginError = 'Username non trovato. Controlla di averlo scritto come indicato dagli sposi, oppure contattali.';
+      render(); return;
+    }
+    guest = normalizeGuestObj({
+      id: username, username, name: rawUsername, rsvp:null, brunchInvite:false, brunchRsvp:null,
+      respondedAt:null, brunchRespondedAt:null, createdAt: Date.now()
+    });
+    await saveGuestRecord(guest);
+  }
+  state.busy = false;
+  state.currentUser = {type:'guest'};
+  state.guestRecord = guest;
+  state.view = 'guest'; state.guestTab = 'save-the-date';
+  render();
+}
+function logout(){
+  state.currentUser = null; state.guestRecord = null; state.guests = [];
+  state.view = 'login'; state.loginError = '';
+  render();
+}
+
+/* ============================= GUEST ACTIONS (operate only on state.guestRecord) ============================= */
+async function setRsvp(value){
+  state.guestRecord.rsvp = value; state.guestRecord.respondedAt = Date.now();
+  await saveGuestRecord(state.guestRecord); render();
+}
+async function setBrunchRsvp(value){
+  state.guestRecord.brunchRsvp = value; state.guestRecord.brunchRespondedAt = Date.now();
+  await saveGuestRecord(state.guestRecord); render();
+}
+
+/* ============================= ADMIN: GUESTS ============================= */
+async function addGuestManual(){
+  const input = document.getElementById('new-guest-name');
+  const name = input.value.trim();
+  if(!name) return;
+  const username = slugify(name);
+  if(!username){ showToast('Nome non valido'); return; }
+  if(state.guests.some(g=>g.username===username)){ showToast('Invitato già presente'); return; }
+  const rec = normalizeGuestObj({id:username, username, name, rsvp:null, brunchInvite:false, brunchRsvp:null, respondedAt:null, brunchRespondedAt:null, ageCategory:'adulto', createdAt:Date.now()});
+  await saveGuestRecord(rec);
+  state.guests.push(rec);
+  input.value='';
+  render();
+}
+async function removeGuest(username){
+  if(!confirm('Rimuovere questo invitato dall\'elenco?')) return;
+  await deleteGuestRecord(username);
+  state.guests = state.guests.filter(g=>g.username!==username);
+  render();
+}
+async function toggleBrunch(username){
+  const g = state.guests.find(x=>x.username===username);
+  g.brunchInvite = !g.brunchInvite;
+  if(!g.brunchInvite){ g.brunchRsvp = null; g.brunchRespondedAt = null; }
+  await saveGuestRecord(g); render();
+}
+async function updateGuestCategory(username, value){
+  const g = state.guests.find(x=>x.username===username);
+  g.ageCategory = value;
+  await saveGuestRecord(g); render();
+}
+async function resetGuestRsvp(username){
+  const g = state.guests.find(x=>x.username===username);
+  g.rsvp = null; g.respondedAt = null;
+  await saveGuestRecord(g); render();
+}
+async function updateGuestContact(username, field, value){
+  const g = state.guests.find(x=>x.username===username);
+  g[field] = value.trim();
+  await saveGuestRecord(g);
+}
+async function markSent(username, kind){
+  const g = state.guests.find(x=>x.username===username);
+  if(kind==='invite') g.inviteSentAt = Date.now();
+  if(kind==='reminder') g.reminderSentAt = Date.now();
+  await saveGuestRecord(g); render();
+}
+function sendInviteMail(username){
+  const g = state.guests.find(x=>x.username===username);
+  if(!g.email){ showToast('Aggiungi prima un indirizzo email'); return; }
+  window.location.href = mailtoUrl(g, state.settings.templates.invite);
+  markSent(username,'invite');
+}
+function sendInviteWa(username){
+  const g = state.guests.find(x=>x.username===username);
+  if(!g.phone){ showToast('Aggiungi prima un numero di telefono'); return; }
+  window.open(waUrl(g, state.settings.templates.invite), '_blank');
+  markSent(username,'invite');
+}
+function sendReminderMail(username){
+  const g = state.guests.find(x=>x.username===username);
+  if(!g.email){ showToast('Aggiungi prima un indirizzo email'); return; }
+  window.location.href = mailtoUrl(g, state.settings.templates.reminder);
+  markSent(username,'reminder');
+}
+function sendReminderWa(username){
+  const g = state.guests.find(x=>x.username===username);
+  if(!g.phone){ showToast('Aggiungi prima un numero di telefono'); return; }
+  window.open(waUrl(g, state.settings.templates.reminder), '_blank');
+  markSent(username,'reminder');
+}
+
+/* ============================= ADMIN: SETTINGS ============================= */
+function addParking(){
+  const name = document.getElementById('parking-name').value.trim();
+  const addr = document.getElementById('parking-addr').value.trim();
+  if(!name && !addr) return;
+  state.settings.ceremony.parking.push({name, address:addr});
+  document.getElementById('parking-name').value=''; document.getElementById('parking-addr').value='';
+  saveSettings(); render();
+}
+function removeParking(idx){ state.settings.ceremony.parking.splice(idx,1); saveSettings(); render(); }
+function addHotel(){
+  const name = document.getElementById('hotel-name').value.trim();
+  const addr = document.getElementById('hotel-addr').value.trim();
+  const note = document.getElementById('hotel-note').value.trim();
+  if(!name && !addr) return;
+  state.settings.hotels.push({name, address:addr, note});
+  document.getElementById('hotel-name').value=''; document.getElementById('hotel-addr').value=''; document.getElementById('hotel-note').value='';
+  saveSettings(); render();
+}
+function removeHotel(idx){ state.settings.hotels.splice(idx,1); saveSettings(); render(); }
+function saveSettingsFromForm(){
+  state.settings.coupleNames = document.getElementById('set-couple').value.trim() || 'Gli Sposi';
+  state.settings.password = document.getElementById('set-pass').value.trim() || state.settings.password;
+  state.settings.adminUsername = document.getElementById('set-admin').value.trim() || state.settings.adminUsername;
+  state.settings.allowSelfRegister = document.getElementById('set-selfreg').checked;
+  state.settings.welcomeTitle = document.getElementById('set-title').value.trim();
+  state.settings.weddingDateLabel = document.getElementById('set-date').value.trim();
+  state.settings.welcomeMessage = document.getElementById('set-msg').value.trim();
+  state.settings.ceremony.name = document.getElementById('cer-name').value.trim();
+  state.settings.ceremony.address = document.getElementById('cer-addr').value.trim();
+  state.settings.reception.name = document.getElementById('rec-name').value.trim();
+  state.settings.reception.address = document.getElementById('rec-addr').value.trim();
+  state.settings.reception.logoUrl = document.getElementById('rec-logo').value.trim();
+  saveSettings(); render();
+}
+function saveThemeFromForm(){
+  state.settings.theme.bg = document.getElementById('th-bg').value;
+  state.settings.theme.panel = document.getElementById('th-panel').value;
+  state.settings.theme.ink = document.getElementById('th-ink').value;
+  state.settings.theme.accent = document.getElementById('th-accent').value;
+  state.settings.theme.accent2 = document.getElementById('th-accent2').value;
+  state.settings.theme.fontPair = document.getElementById('th-font').value;
+  applyTheme(); saveSettings(); render();
+}
+function saveTemplatesFromForm(){
+  state.settings.templates.invite.subject = document.getElementById('tpl-invite-subject').value;
+  state.settings.templates.invite.body = document.getElementById('tpl-invite-body').value;
+  state.settings.templates.reminder.subject = document.getElementById('tpl-reminder-subject').value;
+  state.settings.templates.reminder.body = document.getElementById('tpl-reminder-body').value;
+  saveSettings(); render();
+}
+function savePublicBaseUrl(){
+  const val = document.getElementById('public-base-url').value.trim();
+  state.settings.publicBaseUrl = val.replace(/\/$/, '');
+  saveSettings(); render();
+}
+
+/* ============================= RENDER: LOGIN ============================= */
+function renderLogin(){
+  return `
+  <div class="center-wrap">
+    <div style="max-width:400px; width:100%;">
+      <div style="text-align:center; margin-bottom:22px;">
+        ${state.settings.theme.heroImage ? `<img src="${state.settings.theme.heroImage}" style="width:100%; max-height:220px; object-fit:cover; border-radius:14px; margin-bottom:18px;" alt="">` : ''}
+        <p class="eyebrow" style="text-align:center;">${esc(state.settings.weddingDateLabel || 'Save the date')}</p>
+        <h1>${esc(state.settings.welcomeTitle)}</h1>
+        <div class="thread" style="max-width:180px; margin:0 auto 18px auto;"></div>
+        <p style="font-size:14px;">${esc(state.settings.coupleNames)}</p>
+      </div>
+      <div class="card">
+        <div class="field">
+          <label>Nome utente</label>
+          <input type="text" id="login-user" placeholder="Es. mariarossi" autocomplete="off" value="${esc(state.prefillGuest)}">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <div style="display:flex; gap:8px;">
+            <input type="password" id="login-pass" placeholder="Password" autocomplete="off" style="flex:1;">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="const p=document.getElementById('login-pass'); p.type = p.type==='password' ? 'text' : 'password';">Mostra</button>
+          </div>
+        </div>
+        ${state.loginError ? `<div class="error-msg">${esc(state.loginError)}</div>` : ''}
+        <button class="btn btn-primary btn-block" onclick="handleLogin()" ${state.busy?'disabled':''}>${state.busy?'Accesso in corso…':'Entra'}</button>
+        <p class="hint" style="text-align:center; margin-top:14px;">Username e password vi sono stati comunicati dagli sposi.</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============================= RENDER: GUEST APP ============================= */
+function renderGuestApp(){
+  const g = state.guestRecord;
+  const s = state.settings;
+  const tabs = [{k:'save-the-date', label:'Save the date'}];
+  if(g.brunchInvite) tabs.push({k:'brunch', label:'Brunch'});
+  tabs.push({k:'luoghi', label:'Dove & quando'});
+
+  let body = '';
+  if(state.guestTab === 'save-the-date'){
+    body = `
+      <div class="card">
+        <p class="eyebrow">Save the date</p>
+        <h2>Ciao ${esc(g.name)}, ci sarai?</h2>
+        <p>Facci sapere se potrai unirti a noi per il nostro giorno speciale.</p>
+        <div class="rsvp-choice">
+          <button class="rsvp-btn yes ${g.rsvp==='yes'?'selected':''}" onclick="setRsvp('yes')">✓ Sì, ci sarò</button>
+          <button class="rsvp-btn no ${g.rsvp==='no'?'selected':''}" onclick="setRsvp('no')">✕ Non potrò esserci</button>
+        </div>
+        ${g.rsvp ? `<p class="hint">Risposta registrata il ${new Date(g.respondedAt).toLocaleDateString('it-IT')}. Puoi modificarla in qualsiasi momento.</p>` : ''}
+      </div>`;
+  } else if(state.guestTab === 'brunch' && g.brunchInvite){
+    body = `
+      <div class="card">
+        <p class="eyebrow">Il giorno dopo</p>
+        <h2>Brunch di saluto</h2>
+        <p>Siete invitati anche al brunch informale del giorno successivo. Ci sarete?</p>
+        <div class="rsvp-choice">
+          <button class="rsvp-btn yes ${g.brunchRsvp==='yes'?'selected':''}" onclick="setBrunchRsvp('yes')">✓ Sì, con piacere</button>
+          <button class="rsvp-btn no ${g.brunchRsvp==='no'?'selected':''}" onclick="setBrunchRsvp('no')">✕ Non ci sarò</button>
+        </div>
+        ${g.brunchRsvp ? `<p class="hint">Risposta registrata il ${new Date(g.brunchRespondedAt).toLocaleDateString('it-IT')}.</p>` : ''}
+      </div>`;
+  } else {
+    body = `
+      <div class="info-block card" style="margin-bottom:18px;">
+        <p class="eyebrow">Cerimonia</p>
+        <h3>${esc(s.ceremony.name || 'Da definire')}</h3>
+        <p class="addr">${esc(s.ceremony.address || 'Indirizzo non ancora disponibile')}</p>
+        ${s.ceremony.address ? mapLinkButton(s.ceremony.address) : ''}
+        ${s.ceremony.parking && s.ceremony.parking.length ? `
+          <h3 style="margin-top:16px;">Parcheggi consigliati</h3>
+          <ul class="tag-list">${s.ceremony.parking.map(p=>`<li><strong>${esc(p.name)}</strong>${p.address?' — '+esc(p.address):''}</li>`).join('')}</ul>
+        ` : ''}
+      </div>
+      <div class="info-block card" style="margin-bottom:18px;">
+        <p class="eyebrow">Ricevimento</p>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+          <h3 style="margin:0;">${esc(s.reception.name || 'Da definire')}</h3>
+          ${s.reception.logoUrl ? `<img src="${s.reception.logoUrl}" alt="" style="height:28px; width:auto; object-fit:contain;">` : ''}
+        </div>
+        <p class="addr">${esc(s.reception.address || 'Indirizzo non ancora disponibile')}</p>
+        ${s.reception.address ? mapLinkButton(s.reception.address) : ''}
+      </div>
+      <div class="info-block card">
+        <p class="eyebrow">Dove dormire</p>
+        <h3>Strutture consigliate</h3>
+        ${s.hotels.length===0 ? `<p>Le strutture verranno comunicate a breve.</p>` : s.hotels.map(h=>`
+          <div style="margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--line);">
+            <h3 style="margin-bottom:2px;">${esc(h.name)}</h3>
+            <p class="addr">${esc(h.address)}</p>
+            ${h.note ? `<p class="hint" style="margin-bottom:8px;">${esc(h.note)}</p>` : ''}
+            ${h.address ? mapLinkButton(h.address) : ''}
+          </div>
+        `).join('')}
+      </div>`;
+  }
+
+  return `
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">${esc(s.coupleNames)}</div>
+        <div class="nav-tabs">
+          ${tabs.map(t=>`<button class="nav-tab ${state.guestTab===t.k?'active':''}" onclick="state.guestTab='${t.k}'; render();">${t.label}</button>`).join('')}
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm" onclick="logout()">Esci</button>
+        </div>
+      </div>
+    </div>
+    <main><div class="wrap">${body}</div></main>
+    <div class="footer-note">${esc(s.welcomeMessage)}</div>
+  `;
+}
+
+/* ============================= RENDER: ADMIN APP ============================= */
+function renderAdminApp(){
+  const s = state.settings;
+  const total = state.guests.length;
+  const yes = state.guests.filter(g=>g.rsvp==='yes').length;
+  const no = state.guests.filter(g=>g.rsvp==='no').length;
+  const pending = total - yes - no;
+
+  let body = '';
+  if(state.adminTab === 'invitati') body = renderAdminGuests(total, yes, no, pending);
+  else if(state.adminTab === 'inviti') body = renderAdminInviti();
+  else if(state.adminTab === 'luoghi') body = renderAdminLuoghi();
+  else body = renderAdminTema();
+
+  return `
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">${esc(s.coupleNames)} <span class="chip" style="margin-left:8px;">sposi</span></div>
+        <div class="nav-tabs">
+          <button class="nav-tab ${state.adminTab==='invitati'?'active':''}" onclick="state.adminTab='invitati'; render();">Invitati</button>
+          <button class="nav-tab ${state.adminTab==='inviti'?'active':''}" onclick="state.adminTab='inviti'; render();">Inviti</button>
+          <button class="nav-tab ${state.adminTab==='luoghi'?'active':''}" onclick="state.adminTab='luoghi'; render();">Luoghi & info</button>
+          <button class="nav-tab ${state.adminTab==='tema'?'active':''}" onclick="state.adminTab='tema'; render();">Personalizza</button>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm" onclick="logout()">Esci</button>
+        </div>
+      </div>
+    </div>
+    <main><div class="wrap">${body}</div></main>
+  `;
+}
+
+function renderAdminGuests(total, yes, no, pending){
+  const filter = state.guestFilter || '';
+  const filtered = state.guests
+    .filter(g => g.name.toLowerCase().includes(filter.toLowerCase()))
+    .sort((a,b)=>a.name.localeCompare(b.name));
+
+  return `
+    <div class="stat-row">
+      <div class="stat"><div class="num">${total}</div><div class="lbl">Invitati totali</div></div>
+      <div class="stat"><div class="num" style="color:var(--green)">${yes}</div><div class="lbl">Confermati</div></div>
+      <div class="stat"><div class="num" style="color:var(--red)">${no}</div><div class="lbl">Non partecipano</div></div>
+      <div class="stat"><div class="num" style="color:var(--orange)">${pending}</div><div class="lbl">In attesa</div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Aggiungi invitato</p>
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="new-guest-name" placeholder="Nome e cognome" style="flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:9px;" onkeydown="if(event.key==='Enter')addGuestManual();">
+        <button class="btn btn-accent" onclick="addGuestManual()">Aggiungi</button>
+      </div>
+      <p class="hint">L'username per l'accesso viene generato automaticamente dal nome (nomecognome, senza spazi). La password è unica per tutti ed è quella impostata in "Luoghi & info".</p>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <p class="eyebrow" style="margin:0;">Elenco invitati</p>
+        <input type="text" placeholder="Cerca per nome…" value="${esc(filter)}" oninput="state.guestFilter=this.value; render();">
+      </div>
+      <table>
+        <thead><tr>
+          <th>Save the date</th><th>Nome / username</th><th>Risposto il</th><th>Brunch</th><th>Categoria</th><th>Stato brunch</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${filtered.length===0 ? `<tr><td colspan="7" style="text-align:center; color:var(--ink-soft); padding:20px;">Nessun invitato trovato.</td></tr>` : filtered.map(g=>{
+            const st = statusOf(g,'rsvp');
+            const bst = g.brunchInvite ? statusOf(g,'brunch') : null;
+            return `<tr>
+              <td><span class="seal ${st.cls}" title="${st.label}"></span></td>
+              <td><strong>${esc(g.name)}</strong><br><span class="hint">utente: ${esc(g.username)}</span></td>
+              <td>${g.respondedAt ? new Date(g.respondedAt).toLocaleDateString('it-IT') : '—'}</td>
+              <td>
+                <label style="display:flex; align-items:center; gap:6px; font-size:12.5px;">
+                  <input type="checkbox" ${g.brunchInvite?'checked':''} onchange="toggleBrunch('${g.username}')"> invitato
+                </label>
+              </td>
+              <td>
+                <select onchange="updateGuestCategory('${g.username}', this.value)" style="padding:6px 8px; border:1px solid var(--line); border-radius:8px; font-size:12.5px;">
+                  <option value="adulto" ${g.ageCategory==='adulto'?'selected':''}>Adulto</option>
+                  <option value="bambino" ${g.ageCategory==='bambino'?'selected':''}>Bambino</option>
+                  <option value="infante" ${g.ageCategory==='infante'?'selected':''}>Infante</option>
+                </select>
+              </td>
+              <td>${bst ? `<span class="status-row"><span class="seal ${bst.cls}"></span><span class="status-label">${bst.label}</span></span>` : '<span class="hint">—</span>'}</td>
+              <td style="text-align:right; white-space:nowrap;">
+                ${g.rsvp ? `<button class="btn btn-ghost btn-sm" onclick="resetGuestRsvp('${g.username}')">Azzera</button>` : ''}
+                <button class="btn btn-outline-red btn-sm" onclick="removeGuest('${g.username}')">Rimuovi</button>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderAdminInviti(){
+  const s = state.settings;
+  const sorted = [...state.guests].sort((a,b)=>a.name.localeCompare(b.name));
+  const pending = sorted.filter(g=>!g.rsvp);
+  const sub = state.invitiSubTab || 'da-invitare';
+
+  function contactRow(g, kind){
+    const sentAt = kind==='invite' ? g.inviteSentAt : g.reminderSentAt;
+    const mailFn = kind==='invite' ? 'sendInviteMail' : 'sendReminderMail';
+    const waFn = kind==='invite' ? 'sendInviteWa' : 'sendReminderWa';
+    return `
+      <div class="invite-row">
+        <div class="invite-row-top">
+          <div><strong>${esc(g.name)}</strong><div class="mono-hint">utente: ${esc(g.username)}</div></div>
+          <span class="chip ${g.rsvp?'' : 'wait'}">${g.rsvp==='yes'?'Confermato':g.rsvp==='no'?'Non partecipa':'In attesa'}</span>
+        </div>
+        <div class="invite-contacts">
+          <input type="email" placeholder="Email" value="${esc(g.email)}" onchange="updateGuestContact('${g.username}','email',this.value)">
+          <input type="text" placeholder="Telefono (con prefisso, es. 39...)" value="${esc(g.phone)}" onchange="updateGuestContact('${g.username}','phone',this.value)">
+        </div>
+        <div class="invite-actions">
+          <button class="btn btn-mail btn-sm" ${g.email?'':'disabled'} onclick="${mailFn}('${g.username}')">✉ Email</button>
+          <button class="btn btn-wa btn-sm" ${g.phone?'':'disabled'} onclick="${waFn}('${g.username}')">WhatsApp</button>
+        </div>
+        ${sentAt ? `<div class="sent-note">Preparato il ${new Date(sentAt).toLocaleDateString('it-IT')} alle ${new Date(sentAt).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})} — conferma solo l'apertura del messaggio, non l'invio effettivo.</div>` : ''}
+      </div>`;
+  }
+
+  return `
+    <div class="card" style="margin-bottom:20px; ${s.publicBaseUrl ? '' : 'border-color:var(--red);'}">
+      <p class="eyebrow">Indirizzo pubblico del sito</p>
+      ${s.publicBaseUrl ? `<p class="hint" style="margin-bottom:10px;">Link in uso: <strong>${esc(s.publicBaseUrl)}</strong></p>` : `<p style="color:var(--red); font-size:13.5px; margin-bottom:10px;">Non ancora impostato: i link nei messaggi risulteranno rotti finché non lo inserisci qui sotto.</p>`}
+      <p class="hint" style="margin-top:-6px;">Pubblica prima il sito con il tasto "Pubblica" in alto, copia il link pubblico che ottieni e incollalo qui sotto. Da qui in poi tutti i link personali generati per gli invitati useranno questo indirizzo.</p>
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <input type="text" id="public-base-url" placeholder="https://claude.site/artifacts/..." value="${esc(s.publicBaseUrl)}" style="flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:9px;">
+        <button class="btn btn-accent" onclick="savePublicBaseUrl()">Salva</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Come funziona</p>
+      <p>Per ogni invitato puoi aprire un'email o una chat WhatsApp già pronte, con un link personale che pre-compila il suo username sulla pagina di accesso. Il messaggio va comunque confermato e inviato da te: il sito non spedisce nulla in autonomia.</p>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Testi dei messaggi</p>
+      <p class="hint" style="margin-top:-6px;">Segnaposto disponibili: {nome}, {username}, {sposi}, {link}, {data}.</p>
+      <h3 style="margin-top:14px;">Save the date</h3>
+      <div class="field"><label>Oggetto</label><input type="text" id="tpl-invite-subject" value="${esc(s.templates.invite.subject)}"></div>
+      <div class="field"><label>Testo</label><textarea id="tpl-invite-body" rows="6">${esc(s.templates.invite.body)}</textarea></div>
+      <h3>Promemoria</h3>
+      <div class="field"><label>Oggetto</label><input type="text" id="tpl-reminder-subject" value="${esc(s.templates.reminder.subject)}"></div>
+      <div class="field"><label>Testo</label><textarea id="tpl-reminder-body" rows="5">${esc(s.templates.reminder.body)}</textarea></div>
+      <button class="btn btn-primary" onclick="saveTemplatesFromForm()">Salva testi</button>
+    </div>
+
+    <div class="subnav" style="display:flex; gap:20px; border-bottom:1px solid var(--line); margin-bottom:20px;">
+      <button class="nav-tab ${sub==='da-invitare'?'active':''}" onclick="state.invitiSubTab='da-invitare'; render();">Invia save the date (${sorted.length})</button>
+      <button class="nav-tab ${sub==='solleciti'?'active':''}" onclick="state.invitiSubTab='solleciti'; render();">Solleciti — in attesa (${pending.length})</button>
+    </div>
+
+    ${sub==='da-invitare'
+      ? (sorted.length===0 ? `<p>Nessun invitato in elenco ancora.</p>` : sorted.map(g=>contactRow(g,'invite')).join(''))
+      : (pending.length===0 ? `<p>Tutti hanno risposto: nessun sollecito da mandare.</p>` : pending.map(g=>contactRow(g,'reminder')).join(''))
+    }
+  `;
+}
+
+function renderAdminLuoghi(){
+  const s = state.settings;
+  return `
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Impostazioni generali</p>
+      <div class="swatch-row">
+        <div class="field"><label>Nomi degli sposi</label><input type="text" id="set-couple" value="${esc(s.coupleNames)}"></div>
+        <div class="field"><label>Data (etichetta libera)</label><input type="text" id="set-date" value="${esc(s.weddingDateLabel)}" placeholder="Es. 12 Settembre 2026"></div>
+      </div>
+      <div class="swatch-row">
+        <div class="field"><label>Password di accesso (per tutti)</label><input type="text" id="set-pass" value="${esc(s.password)}"></div>
+        <div class="field"><label>Nome utente sposi (accesso amministratore)</label><input type="text" id="set-admin" value="${esc(s.adminUsername)}"></div>
+      </div>
+      <div class="field">
+        <label style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="set-selfreg" ${s.allowSelfRegister?'checked':''}> Permetti a chi digita uno username non presente in elenco di auto-registrarsi (sconsigliato: meglio generare voi gli username)
+        </label>
+      </div>
+      <div class="field"><label>Titolo di benvenuto</label><input type="text" id="set-title" value="${esc(s.welcomeTitle)}"></div>
+      <div class="field"><label>Messaggio di benvenuto</label><textarea id="set-msg" rows="2">${esc(s.welcomeMessage)}</textarea></div>
+      <button class="btn btn-primary" onclick="saveSettingsFromForm()">Salva impostazioni</button>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Cerimonia</p>
+      <div class="swatch-row">
+        <div class="field"><label>Nome del luogo</label><input type="text" id="cer-name" value="${esc(s.ceremony.name)}" placeholder="Es. Chiesa di San Michele"></div>
+        <div class="field"><label>Indirizzo</label><input type="text" id="cer-addr" value="${esc(s.ceremony.address)}" placeholder="Via, città"></div>
+      </div>
+      <h3>Parcheggi in zona</h3>
+      ${s.ceremony.parking.map((p,i)=>`
+        <div class="list-item-row">
+          <div class="grow"><strong>${esc(p.name)}</strong>${p.address?' — '+esc(p.address):''}</div>
+          <button class="btn btn-outline-red btn-sm" onclick="removeParking(${i})">Rimuovi</button>
+        </div>`).join('')}
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <input type="text" id="parking-name" placeholder="Nome parcheggio" style="flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:9px;">
+        <input type="text" id="parking-addr" placeholder="Indirizzo" style="flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:9px;">
+        <button class="btn btn-ghost" onclick="addParking()">Aggiungi</button>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="saveSettingsFromForm()">Salva sezione cerimonia</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Ricevimento</p>
+      <div class="swatch-row">
+        <div class="field"><label>Nome del luogo</label><input type="text" id="rec-name" value="${esc(s.reception.name)}" placeholder="Es. Villa dei Cipressi"></div>
+        <div class="field"><label>Indirizzo</label><input type="text" id="rec-addr" value="${esc(s.reception.address)}" placeholder="Via, città"></div>
+      </div>
+      <div class="field"><label>Logo della location (URL, facoltativo)</label><input type="text" id="rec-logo" value="${esc(s.reception.logoUrl)}" placeholder="https://..."></div>
+      <button class="btn btn-primary" onclick="saveSettingsFromForm()">Salva sezione ricevimento</button>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">Strutture per gli ospiti</p>
+      ${s.hotels.map((h,i)=>`
+        <div class="list-item-row">
+          <div class="grow">
+            <strong>${esc(h.name)}</strong><br>
+            <span class="hint">${esc(h.address)}${h.note?' — '+esc(h.note):''}</span>
+          </div>
+          <button class="btn btn-outline-red btn-sm" onclick="removeHotel(${i})">Rimuovi</button>
+        </div>`).join('')}
+      <div class="swatch-row" style="margin-top:10px;">
+        <input type="text" id="hotel-name" placeholder="Nome struttura" style="flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:9px;">
+        <input type="text" id="hotel-addr" placeholder="Indirizzo" style="flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:9px;">
+        <input type="text" id="hotel-note" placeholder="Nota (facoltativa)" style="flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:9px;">
+      </div>
+      <button class="btn btn-ghost" style="margin-top:10px;" onclick="addHotel()">Aggiungi struttura</button>
+    </div>
+  `;
+}
+
+function renderAdminTema(){
+  const th = state.settings.theme;
+  return `
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Colori e font</p>
+      <p>Le modifiche si applicano subito a tutta l'esperienza degli invitati.</p>
+      <div class="swatch-row">
+        <div class="field"><label>Colore sfondo</label><input type="color" id="th-bg" value="${th.bg}"></div>
+        <div class="field"><label>Colore pannelli</label><input type="color" id="th-panel" value="${th.panel}"></div>
+        <div class="field"><label>Colore testo</label><input type="color" id="th-ink" value="${th.ink}"></div>
+      </div>
+      <div class="swatch-row">
+        <div class="field"><label>Colore accento 1</label><input type="color" id="th-accent" value="${th.accent}"></div>
+        <div class="field"><label>Colore accento 2</label><input type="color" id="th-accent2" value="${th.accent2}"></div>
+        <div class="field">
+          <label>Font</label>
+          <select id="th-font">
+            ${Object.entries(FONT_PAIRS).map(([k,v])=>`<option value="${k}" ${th.fontPair===k?'selected':''}>${v.label}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveThemeFromForm()">Applica colori e font</button>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Immagine di copertina</p>
+      <p>Mostrata in alto nella pagina di accesso. Incolla il link diretto a una foto (caricala prima su Google Foto/Drive impostato come "chiunque abbia il link", Imgur, o usa il link di una foto già online).</p>
+      ${th.heroImage ? `<img src="${th.heroImage}" style="width:100%; max-height:220px; object-fit:cover; border-radius:12px; margin-bottom:12px; border:1px solid var(--line);" alt="Copertina">` : ''}
+      <input type="text" placeholder="https://..." value="${esc(th.heroImage)}" onchange="setThemeImageUrl('heroImage', this.value)">
+      ${th.heroImage ? `<button class="btn btn-outline-red btn-sm" style="margin-top:8px;" onclick="removeThemeImage('heroImage')">Rimuovi</button>` : ''}
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">Immagine di sfondo</p>
+      <p>Sfondo di tutto il sito, dietro i contenuti. Scegli una foto non troppo "affollata" per mantenere il testo leggibile.</p>
+      ${th.bgImage ? `<img src="${th.bgImage}" style="width:100%; max-height:220px; object-fit:cover; border-radius:12px; margin-bottom:12px; border:1px solid var(--line);" alt="Sfondo">` : ''}
+      <input type="text" placeholder="https://..." value="${esc(th.bgImage)}" onchange="setThemeImageUrl('bgImage', this.value)">
+      ${th.bgImage ? `<button class="btn btn-outline-red btn-sm" style="margin-top:8px;" onclick="removeThemeImage('bgImage')">Rimuovi</button>` : ''}
+    </div>
+  `;
+}
+
+/* ============================= MAIN RENDER ============================= */
+function renderSetupNeeded(){
+  return `
+  <div class="center-wrap">
+    <div class="card" style="max-width:480px;">
+      <p class="eyebrow">Configurazione necessaria</p>
+      <h2>Manca la connessione al database</h2>
+      <p>Questo sito usa un Google Sheet come database. Nel file HTML, in cima allo script, sostituisci <code>"INSERISCI_QUI"</code> in <code>APPS_SCRIPT_URL</code> con l'URL del tuo Web App di Google Apps Script, poi ricarica la pagina.</p>
+    </div>
+  </div>`;
+}
+function render(){
+  applyTheme();
+  const app = document.getElementById('app');
+  if(!backendReady){ app.innerHTML = renderSetupNeeded(); return; }
+  if(state.loading){ app.innerHTML = `<div class="center-wrap"><p>Caricamento…</p></div>`; return; }
+  if(!state.currentUser){ app.innerHTML = renderLogin(); return; }
+  if(state.currentUser.type === 'admin') app.innerHTML = renderAdminApp();
+  else app.innerHTML = renderGuestApp();
+}
+
+/* ============================= INIT ============================= */
+(async function(){
+  if(!backendReady){ render(); return; }
+  await loadSettings();
+  const params = new URLSearchParams(window.location.search);
+  const gParam = params.get('g');
+  if(gParam) state.prefillGuest = gParam;
+
+  const RECOVERY_TOKEN = 'reset-matrimonio-2026';
+  const resetParam = params.get('reset');
+  if(resetParam === RECOVERY_TOKEN){
+    const d = defaultSettings();
+    state.settings.password = d.password;
+    state.settings.adminUsername = d.adminUsername;
+    await saveSettings();
+    state.loginError = 'Password sposi ripristinata a "ruggeroclaudia" (utente "sposi"). Entra e cambiala subito da Luoghi & info.';
+  }
+
+  state.loading = false;
+  render();
+})();
+</script>
+</body>
+</html>
