@@ -437,7 +437,8 @@ async function handleLogin(){
   state.busy = false;
   state.currentUser = {type:'guest'};
   state.guestRecord = guest;
-  state.view = 'guest'; state.guestTab = 'save-the-date';
+  state.view = 'guest';
+  state.guestTab = guest.fullInviteSentAt ? (guest.rsvp ? 'luoghi' : 'rsvp') : 'save-the-date';
   render();
 }
 function logout(){
