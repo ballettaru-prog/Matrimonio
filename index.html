@@ -718,6 +718,7 @@ function renderLogin(){
         <p style="font-size:14px;">${esc(state.settings.coupleNames)}</p>
       </div>
       <div class="card">
+        ${state.prefillGuest ? `<p class="hint" style="margin-top:0; margin-bottom:16px; padding:10px 12px; background:rgba(179,102,122,0.08); border-radius:9px; color:var(--ink);">È arrivato il nostro invito! Il tuo nome utente è già inserito: aggiungi la password che ti abbiamo comunicato per confermare la presenza e vedere tutti i dettagli.</p>` : ''}
         <div class="field">
           <label>Nome utente</label>
           <input type="text" id="login-user" placeholder="Es. mariarossi" autocomplete="off" value="${esc(state.prefillGuest)}">
@@ -1296,16 +1297,22 @@ function render(){
 
   state.loading = false;
 
-  // Apertura diretta del save the date dal link personale (?g=username), senza login.
-  // La sessione è "non autenticata": mostra solo il save the date; RSVP e dettagli
-  // riservati restano dietro password (l'invitato può accedere dal pulsante dedicato).
+  // Apertura diretta dal link personale (?g=username).
+  // - Se l'invito completo NON è ancora stato inviato: mostra il save the date senza login.
+  // - Se l'invito completo È stato inviato: porta al login (username precompilato), così
+  //   l'invitato arriva subito alla conferma presenza invece di rivedere il save the date.
   if(gParam && !state.currentUser){
     const guest = await fetchGuestByUsername(slugify(gParam));
     if(guest){
-      state.currentUser = {type:'guest', authed:false};
-      state.guestRecord = guest;
-      state.view = 'guest';
-      state.guestTab = 'save-the-date';
+      if(guest.fullInviteSentAt){
+        state.prefillGuest = guest.username;
+        state.view = 'login';
+      } else {
+        state.currentUser = {type:'guest', authed:false};
+        state.guestRecord = guest;
+        state.view = 'guest';
+        state.guestTab = 'save-the-date';
+      }
     }
   }
 
