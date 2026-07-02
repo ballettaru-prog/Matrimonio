@@ -192,7 +192,7 @@ input[type=color]{padding:2px; height:38px;}
    ========================================================================== */
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgSJe0hGenonQV9xOM39L2egZAB0VXtrxITNUbcoNswNylctt7QCDy7SEJSe-jBUx3/exec";
 
-const backendReady = APPS_SCRIPT_URL && APPS_SCRIPT_URL !== "INSERISCI_QUI";
+const backendReady = APPS_SCRIPT_URL && APPS_SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbxgSJe0hGenonQV9xOM39L2egZAB0VXtrxITNUbcoNswNylctt7QCDy7SEJSe-jBUx3/exec";
 
 async function apiRead(action, params){
   const qs = new URLSearchParams(Object.assign({action}, params||{})).toString();
@@ -236,14 +236,19 @@ function defaultSettings(){
     ceremony: { name:'', address:'', parking: [] },
     reception: { name:'', address:'', logoUrl:'' },
     hotels: [],
+    saveTheDate: { photo:'', text:'' },
     templates: {
       invite: {
         subject: 'Save the date - {sposi}',
-        body: 'Ciao {nome}!\n\n{sposi} vi aspettano per festeggiare insieme il loro matrimonio.\n\nPer confermare la presenza e trovare tutte le informazioni (luogo, orari, alloggi), entra sul nostro sito:\n{link}\n\nUsername: {username}\nPassword: quella che vi abbiamo comunicato a voce\n\nA presto!'
+        body: 'Ciao {nome}!\n\n{sposi} si sposano: segnatevi la data!\n\nScopri il nostro annuncio qui:\n{link}\n\nUsername: {username}\nPassword: quella che vi abbiamo comunicato a voce\n\nL\'invito con tutti i dettagli arriverà più avanti. A presto!'
       },
       reminder: {
         subject: 'Un piccolo promemoria - {sposi}',
-        body: 'Ciao {nome},\n\nnon abbiamo ancora ricevuto la tua risposta al save the date. Ci farebbe piacere sapere se ci sarai!\n\nPuoi rispondere qui:\n{link}\n\nGrazie di cuore, {sposi}'
+        body: 'Ciao {nome},\n\nnon abbiamo ancora ricevuto la tua risposta al nostro invito. Ci farebbe piacere sapere se ci sarai!\n\nPuoi rispondere qui:\n{link}\n\nGrazie di cuore, {sposi}'
+      },
+      invito: {
+        subject: 'Il nostro invito - {sposi}',
+        body: 'Ciao {nome}!\n\nÈ arrivato il momento: ecco il nostro invito con tutti i dettagli su cerimonia, ricevimento e dove dormire.\n\nEntra qui per confermare la tua presenza:\n{link}\n\nA prestissimo, {sposi}'
       }
     },
     theme: {
@@ -276,6 +281,8 @@ async function loadSettings(){
     if(!res || !res.data) await apiWrite('setSettings', {data: state.settings});
   }catch(e){ state.settings = defaultSettings(); }
   if(!state.settings.templates) state.settings.templates = defaultSettings().templates;
+  if(!state.settings.templates.invito) state.settings.templates.invito = defaultSettings().templates.invito;
+  if(!state.settings.saveTheDate) state.settings.saveTheDate = defaultSettings().saveTheDate;
   if(!state.settings.theme) state.settings.theme = defaultSettings().theme;
   if(state.settings.reception && state.settings.reception.logoUrl===undefined) state.settings.reception.logoUrl='';
 }
@@ -296,6 +303,7 @@ function normalizeGuestObj(g){
   if(g.phone===undefined) g.phone='';
   if(g.inviteSentAt===undefined) g.inviteSentAt=null;
   if(g.reminderSentAt===undefined) g.reminderSentAt=null;
+  if(g.fullInviteSentAt===undefined) g.fullInviteSentAt=null;
   if(g.brunchInvite===undefined) g.brunchInvite=false;
   if(g.ageCategory===undefined) g.ageCategory='adulto';
   return g;
@@ -493,6 +501,7 @@ async function markSent(username, kind){
   const g = state.guests.find(x=>x.username===username);
   if(kind==='invite') g.inviteSentAt = Date.now();
   if(kind==='reminder') g.reminderSentAt = Date.now();
+  if(kind==='invito') g.fullInviteSentAt = Date.now();
   await saveGuestRecord(g); render();
 }
 function sendInviteMail(username){
@@ -518,6 +527,18 @@ function sendReminderWa(username){
   if(!g.phone){ showToast('Aggiungi prima un numero di telefono'); return; }
   window.open(waUrl(g, state.settings.templates.reminder), '_blank');
   markSent(username,'reminder');
+}
+function sendInvitoMail(username){
+  const g = state.guests.find(x=>x.username===username);
+  if(!g.email){ showToast('Aggiungi prima un indirizzo email'); return; }
+  window.location.href = mailtoUrl(g, state.settings.templates.invito);
+  markSent(username,'invito');
+}
+function sendInvitoWa(username){
+  const g = state.guests.find(x=>x.username===username);
+  if(!g.phone){ showToast('Aggiungi prima un numero di telefono'); return; }
+  window.open(waUrl(g, state.settings.templates.invito), '_blank');
+  markSent(username,'invito');
 }
 
 /* ============================= ADMIN: SETTINGS ============================= */
@@ -569,11 +590,59 @@ function saveTemplatesFromForm(){
   state.settings.templates.invite.body = document.getElementById('tpl-invite-body').value;
   state.settings.templates.reminder.subject = document.getElementById('tpl-reminder-subject').value;
   state.settings.templates.reminder.body = document.getElementById('tpl-reminder-body').value;
+  state.settings.templates.invito.subject = document.getElementById('tpl-invito-subject').value;
+  state.settings.templates.invito.body = document.getElementById('tpl-invito-body').value;
   saveSettings(); render();
 }
 function savePublicBaseUrl(){
   const val = document.getElementById('public-base-url').value.trim();
   state.settings.publicBaseUrl = val.replace(/\/$/, '');
+  saveSettings(); render();
+}
+
+/* ============================= ADMIN: SAVE THE DATE (foto + testo) =============================
+   La foto viene ridimensionata e compressa nel browser prima del salvataggio,
+   così da restare entro i limiti del Google Sheet (celle da 50.000 caratteri:
+   il backend la spezza comunque su più celle, ma teniamo il file leggero
+   anche per non rallentare il caricamento della pagina degli invitati). */
+function stdPhotoUpload(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ showToast('Il file non è un\'immagine'); return; }
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const img = new Image();
+    img.onload = function(){
+      const MAX_SIDE = 1100;
+      let w = img.width, h = img.height;
+      if(w > MAX_SIDE || h > MAX_SIDE){
+        const ratio = Math.min(MAX_SIDE / w, MAX_SIDE / h);
+        w = Math.round(w * ratio); h = Math.round(h * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      let quality = 0.8;
+      let dataUrl = canvas.toDataURL('image/jpeg', quality);
+      while(dataUrl.length > 240000 && quality > 0.35){
+        quality -= 0.1;
+        dataUrl = canvas.toDataURL('image/jpeg', quality);
+      }
+      if(dataUrl.length > 240000){ showToast('Foto troppo grande anche dopo la compressione: provane una più semplice'); return; }
+      state.settings.saveTheDate.photo = dataUrl;
+      saveSettings(); render();
+    };
+    img.onerror = function(){ showToast('Impossibile leggere l\'immagine'); };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function stdRemovePhoto(){
+  state.settings.saveTheDate.photo = '';
+  saveSettings(); render();
+}
+function stdSaveText(){
+  state.settings.saveTheDate.text = document.getElementById('std-text').value;
   saveSettings(); render();
 }
 
@@ -614,14 +683,31 @@ function renderGuestApp(){
   const g = state.guestRecord;
   const s = state.settings;
   const tabs = [{k:'save-the-date', label:'Save the date'}];
-  if(g.brunchInvite) tabs.push({k:'brunch', label:'Brunch'});
-  tabs.push({k:'luoghi', label:'Dove & quando'});
+  if(g.fullInviteSentAt){
+    tabs.push({k:'rsvp', label:'Conferma presenza'});
+    if(g.brunchInvite) tabs.push({k:'brunch', label:'Brunch'});
+    tabs.push({k:'luoghi', label:'Dove & quando'});
+  }
+
+  // Se la tab richiesta non è (più) disponibile per questo ospite, si torna al save the date
+  if(!tabs.some(t=>t.k===state.guestTab)) state.guestTab = 'save-the-date';
 
   let body = '';
   if(state.guestTab === 'save-the-date'){
     body = `
       <div class="card">
         <p class="eyebrow">Save the date</p>
+        ${s.saveTheDate && s.saveTheDate.photo ? `<img src="${s.saveTheDate.photo}" alt="Save the date" style="width:100%; border-radius:12px; margin-bottom:14px; display:block;">` : ''}
+        <h2>Ciao ${esc(g.name)}!</h2>
+        ${s.saveTheDate && s.saveTheDate.text ? `<p style="white-space:pre-line;">${esc(s.saveTheDate.text)}</p>` : `<p>Segnatevi la data: vi aspettiamo!</p>`}
+        ${!g.fullInviteSentAt
+          ? `<p class="hint" style="margin-top:14px;">L'invito con tutti i dettagli — e la possibilità di confermare la presenza — arriverà più avanti.</p>`
+          : `<p class="hint" style="margin-top:14px;">L'invito è arrivato: trovi la conferma di presenza e tutti i dettagli nelle schede qui sopra.</p>`}
+      </div>`;
+  } else if(state.guestTab === 'rsvp'){
+    body = `
+      <div class="card">
+        <p class="eyebrow">Conferma presenza</p>
         <h2>Ciao ${esc(g.name)}, ci sarai?</h2>
         <p>Facci sapere se potrai unirti a noi per il nostro giorno speciale.</p>
         <div class="rsvp-choice">
@@ -651,7 +737,11 @@ function renderGuestApp(){
         ${s.ceremony.address ? mapLinkButton(s.ceremony.address) : ''}
         ${s.ceremony.parking && s.ceremony.parking.length ? `
           <h3 style="margin-top:16px;">Parcheggi consigliati</h3>
-          <ul class="tag-list">${s.ceremony.parking.map(p=>`<li><strong>${esc(p.name)}</strong>${p.address?' — '+esc(p.address):''}</li>`).join('')}</ul>
+          <div>${s.ceremony.parking.map(p=>`
+            <div style="margin-bottom:10px;">
+              <p style="margin:0 0 4px 0; font-size:13.5px; color:var(--ink-soft);"><strong style="color:var(--ink);">${esc(p.name)}</strong>${p.address?' — '+esc(p.address):''}</p>
+              ${p.address ? mapLinkButton(p.address) : ''}
+            </div>`).join('')}</div>
         ` : ''}
       </div>
       <div class="info-block card" style="margin-bottom:18px;">
@@ -704,6 +794,7 @@ function renderAdminApp(){
 
   let body = '';
   if(state.adminTab === 'invitati') body = renderAdminGuests(total, yes, no, pending);
+  else if(state.adminTab === 'savethedate') body = renderAdminSaveTheDate();
   else if(state.adminTab === 'inviti') body = renderAdminInviti();
   else if(state.adminTab === 'luoghi') body = renderAdminLuoghi();
   else body = renderAdminTema();
@@ -714,6 +805,7 @@ function renderAdminApp(){
         <div class="brand">${esc(s.coupleNames)} <span class="chip" style="margin-left:8px;">sposi</span></div>
         <div class="nav-tabs">
           <button class="nav-tab ${state.adminTab==='invitati'?'active':''}" onclick="state.adminTab='invitati'; render();">Invitati</button>
+          <button class="nav-tab ${state.adminTab==='savethedate'?'active':''}" onclick="state.adminTab='savethedate'; render();">Save the date</button>
           <button class="nav-tab ${state.adminTab==='inviti'?'active':''}" onclick="state.adminTab='inviti'; render();">Inviti</button>
           <button class="nav-tab ${state.adminTab==='luoghi'?'active':''}" onclick="state.adminTab='luoghi'; render();">Luoghi & info</button>
           <button class="nav-tab ${state.adminTab==='tema'?'active':''}" onclick="state.adminTab='tema'; render();">Personalizza</button>
@@ -792,16 +884,46 @@ function renderAdminGuests(total, yes, no, pending){
   `;
 }
 
+function renderAdminSaveTheDate(){
+  const std = state.settings.saveTheDate;
+  return `
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Save the date</p>
+      <p>Qui componi il save the date che gli invitati vedono quando aprono il loro link: una foto e un testo sotto. È indipendente dall'invio dei messaggi (che resta nella scheda "Inviti") e dall'invito completo con i dettagli logistici.</p>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Foto</p>
+      ${std.photo
+        ? `<img src="${std.photo}" alt="Save the date" style="max-width:100%; max-height:420px; border-radius:12px; display:block; margin-bottom:12px;">
+           <div style="display:flex; gap:10px;">
+             <label class="btn btn-ghost btn-sm" style="cursor:pointer;">Sostituisci foto<input type="file" accept="image/*" style="display:none;" onchange="stdPhotoUpload(this)"></label>
+             <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="stdRemovePhoto()">Rimuovi</button>
+           </div>`
+        : `<p class="hint" style="margin-bottom:12px;">Nessuna foto caricata. L'immagine viene ridimensionata e compressa automaticamente.</p>
+           <label class="btn btn-accent" style="cursor:pointer;">Carica una foto<input type="file" accept="image/*" style="display:none;" onchange="stdPhotoUpload(this)"></label>`
+      }
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">Testo sotto la foto</p>
+      <div class="field"><textarea id="std-text" rows="4" placeholder="Es. Ci sposiamo! Segnatevi la data: 12 settembre 2026. Vi aspettiamo!">${esc(std.text)}</textarea></div>
+      <button class="btn btn-primary" onclick="stdSaveText()">Salva testo</button>
+    </div>
+  `;
+}
+
 function renderAdminInviti(){
   const s = state.settings;
   const sorted = [...state.guests].sort((a,b)=>a.name.localeCompare(b.name));
-  const pending = sorted.filter(g=>!g.rsvp);
+  const pending = sorted.filter(g=>g.fullInviteSentAt && !g.rsvp);
+  const readyForInvito = sorted.filter(g=>g.inviteSentAt && !g.fullInviteSentAt);
   const sub = state.invitiSubTab || 'da-invitare';
 
   function contactRow(g, kind){
-    const sentAt = kind==='invite' ? g.inviteSentAt : g.reminderSentAt;
-    const mailFn = kind==='invite' ? 'sendInviteMail' : 'sendReminderMail';
-    const waFn = kind==='invite' ? 'sendInviteWa' : 'sendReminderWa';
+    const sentAt = kind==='invite' ? g.inviteSentAt : kind==='reminder' ? g.reminderSentAt : g.fullInviteSentAt;
+    const mailFn = kind==='invite' ? 'sendInviteMail' : kind==='reminder' ? 'sendReminderMail' : 'sendInvitoMail';
+    const waFn = kind==='invite' ? 'sendInviteWa' : kind==='reminder' ? 'sendReminderWa' : 'sendInvitoWa';
     return `
       <div class="invite-row">
         <div class="invite-row-top">
@@ -833,7 +955,7 @@ function renderAdminInviti(){
 
     <div class="card" style="margin-bottom:20px;">
       <p class="eyebrow">Come funziona</p>
-      <p>Per ogni invitato puoi aprire un'email o una chat WhatsApp già pronte, con un link personale che pre-compila il suo username sulla pagina di accesso. Il messaggio va comunque confermato e inviato da te: il sito non spedisce nulla in autonomia.</p>
+      <p>Il processo è in due tempi: prima mandi il <strong>save the date</strong> (solo l'annuncio: foto e testo, nessuna risposta richiesta). Solo agli invitati a cui l'hai già mandato compare la seconda scheda, per mandare l'<strong>invito</strong> vero e proprio — che sblocca per loro la conferma di presenza, l'eventuale brunch e i dettagli su cerimonia, ricevimento e alloggi. I solleciti riguardano solo chi ha ricevuto l'invito e non ha ancora risposto. Per ogni invitato puoi aprire un'email o una chat WhatsApp già pronte, con un link personale che pre-compila il suo username sulla pagina di accesso. Il messaggio va comunque confermato e inviato da te: il sito non spedisce nulla in autonomia.</p>
     </div>
 
     <div class="card" style="margin-bottom:20px;">
@@ -842,19 +964,25 @@ function renderAdminInviti(){
       <h3 style="margin-top:14px;">Save the date</h3>
       <div class="field"><label>Oggetto</label><input type="text" id="tpl-invite-subject" value="${esc(s.templates.invite.subject)}"></div>
       <div class="field"><label>Testo</label><textarea id="tpl-invite-body" rows="6">${esc(s.templates.invite.body)}</textarea></div>
+      <h3>Invito (dettagli completi)</h3>
+      <div class="field"><label>Oggetto</label><input type="text" id="tpl-invito-subject" value="${esc(s.templates.invito.subject)}"></div>
+      <div class="field"><label>Testo</label><textarea id="tpl-invito-body" rows="6">${esc(s.templates.invito.body)}</textarea></div>
       <h3>Promemoria</h3>
       <div class="field"><label>Oggetto</label><input type="text" id="tpl-reminder-subject" value="${esc(s.templates.reminder.subject)}"></div>
       <div class="field"><label>Testo</label><textarea id="tpl-reminder-body" rows="5">${esc(s.templates.reminder.body)}</textarea></div>
       <button class="btn btn-primary" onclick="saveTemplatesFromForm()">Salva testi</button>
     </div>
 
-    <div class="subnav" style="display:flex; gap:20px; border-bottom:1px solid var(--line); margin-bottom:20px;">
+    <div class="subnav" style="display:flex; gap:20px; border-bottom:1px solid var(--line); margin-bottom:20px; flex-wrap:wrap;">
       <button class="nav-tab ${sub==='da-invitare'?'active':''}" onclick="state.invitiSubTab='da-invitare'; render();">Invia save the date (${sorted.length})</button>
+      <button class="nav-tab ${sub==='invito'?'active':''}" onclick="state.invitiSubTab='invito'; render();">Invia invito (${readyForInvito.length})</button>
       <button class="nav-tab ${sub==='solleciti'?'active':''}" onclick="state.invitiSubTab='solleciti'; render();">Solleciti — in attesa (${pending.length})</button>
     </div>
 
     ${sub==='da-invitare'
       ? (sorted.length===0 ? `<p>Nessun invitato in elenco ancora.</p>` : sorted.map(g=>contactRow(g,'invite')).join(''))
+      : sub==='invito'
+      ? (readyForInvito.length===0 ? `<p>Nessuno pronto per l'invito completo: manda prima il save the date a qualcuno, poi torna qui.</p>` : readyForInvito.map(g=>contactRow(g,'invito')).join(''))
       : (pending.length===0 ? `<p>Tutti hanno risposto: nessun sollecito da mandare.</p>` : pending.map(g=>contactRow(g,'reminder')).join(''))
     }
   `;
