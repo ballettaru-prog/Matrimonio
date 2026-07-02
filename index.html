@@ -916,10 +916,15 @@ function renderAdminGuests(total, yes, no, pending){
 
 function renderAdminSaveTheDate(){
   const std = state.settings.saveTheDate;
+  const sorted = [...state.guests].sort((a,b)=>a.name.localeCompare(b.name));
+  const pendingWa = sorted.filter(g=>g.phone && !g.inviteSentAt);
+  const sentCount = sorted.filter(g=>g.inviteSentAt).length;
+  const noPhoneCount = sorted.filter(g=>!g.phone).length;
+
   return `
     <div class="card" style="margin-bottom:20px;">
       <p class="eyebrow">Save the date</p>
-      <p>Qui componi il save the date che gli invitati vedono quando aprono il loro link: una foto e un testo sotto. È indipendente dall'invio dei messaggi (che resta nella scheda "Inviti") e dall'invito completo con i dettagli logistici.</p>
+      <p>Qui componi il save the date che gli invitati vedono quando aprono il loro link (foto + testo), e qui sotto puoi anche mandarlo su WhatsApp a tutti i contatti dell'elenco invitati. L'invito completo con i dettagli logistici resta un passo separato, nella scheda "Inviti".</p>
     </div>
 
     <div class="card" style="margin-bottom:20px;">
@@ -935,10 +940,30 @@ function renderAdminSaveTheDate(){
       }
     </div>
 
-    <div class="card">
+    <div class="card" style="margin-bottom:20px;">
       <p class="eyebrow">Testo sotto la foto</p>
       <div class="field"><textarea id="std-text" rows="4" placeholder="Es. Ci sposiamo! Segnatevi la data: 12 settembre 2026. Vi aspettiamo!">${esc(std.text)}</textarea></div>
       <button class="btn btn-primary" onclick="stdSaveText()">Salva testo</button>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">Broadcast WhatsApp</p>
+      <p class="hint" style="margin-top:-6px;">WhatsApp non permette di mandare a più numeri con un solo click da browser: qui sotto trovi una coda pronta, uno alla volta — apri, mandi il messaggio già scritto, e quel nome sparisce da solo dall'elenco. Il testo usato è quello della scheda "Inviti" → Save the date.</p>
+      <p class="hint" style="margin-top:8px;">${pendingWa.length} in coda · ${sentCount} già inviati · ${noPhoneCount} senza numero di telefono</p>
+      <div style="margin-top:12px;">
+        ${pendingWa.length===0
+          ? `<p class="hint">Nessuno in coda: o hai già mandato il save the date a tutti quelli con un numero, o mancano ancora i numeri di telefono (si aggiungono nella scheda Invitati).</p>`
+          : pendingWa.map(g=>`
+              <div class="invite-row">
+                <div class="invite-row-top">
+                  <div><strong>${esc(g.name)}</strong><div class="mono-hint">${esc(g.phone)}</div></div>
+                </div>
+                <div class="invite-actions">
+                  <button class="btn btn-wa btn-sm" onclick="sendInviteWa('${g.username}')">WhatsApp</button>
+                </div>
+              </div>`).join('')
+        }
+      </div>
     </div>
   `;
 }
