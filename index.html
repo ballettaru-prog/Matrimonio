@@ -173,7 +173,7 @@ input[type=color]{padding:2px; height:38px;}
   display:flex; align-items:center; justify-content:center; padding:20px;
 }
 .modal-box{
-  background:var(--panel); border-radius:16px; padding:28px; max-width:380px; width:100%;
+  background:var(--bg-panel); border-radius:16px; padding:28px; max-width:380px; width:100%;
   text-align:center; box-shadow:0 20px 50px rgba(0,0,0,.25);
 }
 .modal-box img{width:100%; max-width:280px; border-radius:8px; border:1px solid var(--line); margin:14px 0;}
@@ -294,6 +294,10 @@ async function loadSettings(){
   if(!state.settings.templates) state.settings.templates = defaultSettings().templates;
   if(!state.settings.templates.invito) state.settings.templates.invito = defaultSettings().templates.invito;
   if(!state.settings.saveTheDate) state.settings.saveTheDate = defaultSettings().saveTheDate;
+  if(!state.settings.ceremony) state.settings.ceremony = defaultSettings().ceremony;
+  if(!Array.isArray(state.settings.ceremony.parking)) state.settings.ceremony.parking = [];
+  if(!state.settings.reception) state.settings.reception = defaultSettings().reception;
+  if(!Array.isArray(state.settings.hotels)) state.settings.hotels = [];
   if(!state.settings.theme) state.settings.theme = defaultSettings().theme;
   if(state.settings.reception && state.settings.reception.logoUrl===undefined) state.settings.reception.logoUrl='';
 }
@@ -310,6 +314,12 @@ async function saveSettings(){
    rsvp) is never loaded into a guest's browser. Only the sposi (admin) session asks for
    the full list. */
 function normalizeGuestObj(g){
+  if(g.id===undefined) g.id = g.username;
+  if(g.name===undefined) g.name='';
+  if(g.rsvp===undefined) g.rsvp=null;
+  if(g.respondedAt===undefined) g.respondedAt=null;
+  if(g.brunchRsvp===undefined) g.brunchRsvp=null;
+  if(g.brunchRespondedAt===undefined) g.brunchRespondedAt=null;
   if(g.email===undefined) g.email='';
   if(g.phone===undefined) g.phone='';
   if(g.inviteSentAt===undefined) g.inviteSentAt=null;
@@ -345,6 +355,15 @@ async function loadAllGuestsForAdmin(){
 /* ============================= HELPERS ============================= */
 function esc(str){
   return String(str==null?'':str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtDate(ts){
+  if(!ts) return '—';
+  const d = new Date(ts);
+  return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('it-IT');
+}
+function fmtTime(ts){
+  const d = new Date(ts);
+  return isNaN(d.getTime()) ? '' : d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
 }
 function mapLinkButton(address){
   if(!address) return '';
@@ -529,10 +548,13 @@ async function updateGuestContact(username, field, value){
 }
 async function markSent(username, kind){
   const g = state.guests.find(x=>x.username===username);
-  if(kind==='invite') g.inviteSentAt = Date.now();
-  if(kind==='reminder') g.reminderSentAt = Date.now();
-  if(kind==='invito') g.fullInviteSentAt = Date.now();
-  await saveGuestRecord(g); render();
+  const field = kind==='invite' ? 'inviteSentAt' : kind==='reminder' ? 'reminderSentAt' : kind==='invito' ? 'fullInviteSentAt' : null;
+  if(!field) return;
+  const prev = g[field];
+  g[field] = Date.now();
+  const ok = await saveGuestRecord(g);
+  if(!ok) g[field] = prev; // il salvataggio è fallito: non fingere che sia stato inviato
+  render();
 }
 function sendInviteMail(username){
   const g = state.guests.find(x=>x.username===username);
@@ -744,7 +766,7 @@ function renderGuestApp(){
           <button class="rsvp-btn yes ${g.rsvp==='yes'?'selected':''}" onclick="setRsvp('yes')">✓ Sì, ci sarò</button>
           <button class="rsvp-btn no ${g.rsvp==='no'?'selected':''}" onclick="setRsvp('no')">✕ Non potrò esserci</button>
         </div>
-        ${g.rsvp ? `<p class="hint">Risposta registrata il ${new Date(g.respondedAt).toLocaleDateString('it-IT')}. Puoi modificarla in qualsiasi momento.</p>` : ''}
+        ${g.rsvp ? `<p class="hint">Risposta registrata il ${fmtDate(g.respondedAt)}. Puoi modificarla in qualsiasi momento.</p>` : ''}
       </div>`;
   } else if(state.guestTab === 'brunch' && g.brunchInvite){
     body = `
@@ -756,7 +778,7 @@ function renderGuestApp(){
           <button class="rsvp-btn yes ${g.brunchRsvp==='yes'?'selected':''}" onclick="setBrunchRsvp('yes')">✓ Sì, con piacere</button>
           <button class="rsvp-btn no ${g.brunchRsvp==='no'?'selected':''}" onclick="setBrunchRsvp('no')">✕ Non ci sarò</button>
         </div>
-        ${g.brunchRsvp ? `<p class="hint">Risposta registrata il ${new Date(g.brunchRespondedAt).toLocaleDateString('it-IT')}.</p>` : ''}
+        ${g.brunchRsvp ? `<p class="hint">Risposta registrata il ${fmtDate(g.brunchRespondedAt)}.</p>` : ''}
       </div>`;
   } else {
     body = `
@@ -888,7 +910,7 @@ function renderAdminGuests(total, yes, no, pending){
             return `<tr>
               <td><span class="seal ${st.cls}" title="${st.label}"></span></td>
               <td><strong>${esc(g.name)}</strong><br><span class="hint">utente: ${esc(g.username)}</span></td>
-              <td>${g.respondedAt ? new Date(g.respondedAt).toLocaleDateString('it-IT') : '—'}</td>
+              <td>${fmtDate(g.respondedAt)}</td>
               <td>
                 <label style="display:flex; align-items:center; gap:6px; font-size:12.5px;">
                   <input type="checkbox" ${g.brunchInvite?'checked':''} onchange="toggleBrunch('${g.username}')"> invitato
@@ -994,7 +1016,7 @@ function renderAdminInviti(){
           <button class="btn btn-wa btn-sm" ${g.phone?'':'disabled'} onclick="${waFn}('${g.username}')">WhatsApp</button>
           ${kind==='invito' ? `<button class="btn btn-ghost btn-sm" onclick="openQrModal('${g.username}')">▦ QR personale</button>` : ''}
         </div>
-        ${sentAt ? `<div class="sent-note">Preparato il ${new Date(sentAt).toLocaleDateString('it-IT')} alle ${new Date(sentAt).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})} — conferma solo l'apertura del messaggio, non l'invio effettivo.</div>` : ''}
+        ${sentAt ? `<div class="sent-note">Preparato il ${fmtDate(sentAt)} alle ${fmtTime(sentAt)} — conferma solo l'apertura del messaggio, non l'invio effettivo.</div>` : ''}
       </div>`;
   }
 
@@ -1028,7 +1050,7 @@ function renderAdminInviti(){
 
     <div class="card" style="margin-bottom:20px;">
       <p class="eyebrow">Come funziona</p>
-      <p>Il processo è in due tempi: prima mandi il <strong>save the date</strong> (solo l'annuncio: foto e testo, nessuna risposta richiesta). Solo agli invitati a cui l'hai già mandato compare la seconda scheda, per mandare l'<strong>invito</strong> vero e proprio — che sblocca per loro la conferma di presenza, l'eventuale brunch e i dettagli su cerimonia, ricevimento e alloggi. I solleciti riguardano solo chi ha ricevuto l'invito e non ha ancora risposto. Per ogni invitato puoi aprire un'email o una chat WhatsApp già pronte, con un link personale che pre-compila il suo username sulla pagina di accesso. Per la stampa cartacea usa invece il QR universale qui sopra; il pulsante "QR code" accanto a ogni invitato genera invece un QR <em>personale</em> con lo username già precompilato, utile solo per casi singoli (es. una consegna a mano a una persona sola) — non per una stampa in serie. Il messaggio va comunque confermato e inviato da te (o l'invito consegnato a mano): il sito non spedisce nulla in autonomia.</p>
+      <p>Il processo è in due tempi: prima mandi il <strong>save the date</strong> (solo l'annuncio: foto e testo, nessuna risposta richiesta). Solo agli invitati a cui l'hai già mandato compare la seconda scheda, per mandare l'<strong>invito</strong> vero e proprio — che sblocca per loro la conferma di presenza, l'eventuale brunch e i dettagli su cerimonia, ricevimento e alloggi. I solleciti riguardano solo chi ha ricevuto l'invito e non ha ancora risposto. Per ogni invitato puoi aprire un'email o una chat WhatsApp già pronte, con un link personale che pre-compila il suo username sulla pagina di accesso. Per la stampa cartacea usa invece il QR universale qui sopra; il pulsante "QR personale" accanto a ogni invitato genera invece un QR con lo username già precompilato, utile solo per casi singoli (es. una consegna a mano a una persona sola) — non per una stampa in serie. Il messaggio va comunque confermato e inviato da te (o l'invito consegnato a mano): il sito non spedisce nulla in autonomia.</p>
     </div>
 
     <div class="card" style="margin-bottom:20px;">
@@ -1091,7 +1113,7 @@ function renderQrModal(){
         <p class="hint" style="word-break:break-all;">${esc(link)}</p>
         <p class="hint">Fai clic destro sull'immagine → "Salva immagine come" per scaricarla in alta risoluzione, pronta per la stampa.</p>
         <div style="display:flex; flex-direction:column; gap:8px; margin-top:16px;">
-          ${!g.fullInviteSentAt ? `<button class="btn btn-primary" onclick="markInvitoSentViaQr('${g.username}')">Segna invito come consegnato</button>` : `<p class="sent-note">Invito già segnato come inviato il ${new Date(g.fullInviteSentAt).toLocaleDateString('it-IT')}.</p>`}
+          ${!g.fullInviteSentAt ? `<button class="btn btn-primary" onclick="markInvitoSentViaQr('${g.username}')">Segna invito come consegnato</button>` : `<p class="sent-note">Invito già segnato come inviato il ${fmtDate(g.fullInviteSentAt)}.</p>`}
           <button class="btn btn-ghost" onclick="closeQrModal()">Chiudi</button>
         </div>
       </div>
