@@ -168,6 +168,16 @@ input[type=color]{padding:2px; height:38px;}
 }
 .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px);}
 
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(31,42,36,.55); z-index:200;
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.modal-box{
+  background:var(--panel); border-radius:16px; padding:28px; max-width:380px; width:100%;
+  text-align:center; box-shadow:0 20px 50px rgba(0,0,0,.25);
+}
+.modal-box img{width:100%; max-width:280px; border-radius:8px; border:1px solid var(--line); margin:14px 0;}
+
 .footer-note{text-align:center; color:var(--ink-soft); font-size:12px; margin-top:36px;}
 
 @media(max-width:640px){
@@ -217,6 +227,7 @@ let state = {
   adminTab: 'invitati',
   guestTab: 'save-the-date',
   invitiSubTab: 'da-invitare',
+  qrModalUsername: null,
   loading: true,
   loginError: '',
   prefillGuest: '',
@@ -380,6 +391,11 @@ function personalLink(username){
     : (window.location.origin + window.location.pathname);
   return base + '?g=' + encodeURIComponent(username);
 }
+function universalSiteLink(){
+  return state.settings.publicBaseUrl
+    ? state.settings.publicBaseUrl.trim().replace(/\/$/, '')
+    : (window.location.origin + window.location.pathname);
+}
 function fillTemplate(tpl, guest){
   const link = personalLink(guest.username);
   const rep = (t)=> t
@@ -399,6 +415,19 @@ function waUrl(guest, tpl){
   const f = fillTemplate(tpl, guest);
   const digits = stripPhone(guest.phone);
   return 'https://wa.me/' + digits + '?text=' + encodeURIComponent(f.subject + '\n\n' + f.body);
+}
+function qrCodeUrl(link, size){
+  // Servizio pubblico gratuito, nessuna chiave richiesta. ecc=H = massima correzione
+  // errori, utile per un QR stampato su carta (resiste a pieghe/macchie leggere).
+  return 'https://api.qrserver.com/v1/create-qr-code/?size=' + size + 'x' + size + '&ecc=H&margin=12&data=' + encodeURIComponent(link);
+}
+function openQrModal(username){ state.qrModalUsername = username; render(); }
+function openUniversalQrModal(){ state.qrModalUsername = '__universal__'; render(); }
+function closeQrModal(){ state.qrModalUsername = null; render(); }
+function markInvitoSentViaQr(username){
+  markSent(username, 'invito');
+  closeQrModal();
+  showToast('Invito segnato come inviato');
 }
 
 /* ============================= AUTH ============================= */
@@ -938,6 +967,7 @@ function renderAdminInviti(){
         <div class="invite-actions">
           <button class="btn btn-mail btn-sm" ${g.email?'':'disabled'} onclick="${mailFn}('${g.username}')">✉ Email</button>
           <button class="btn btn-wa btn-sm" ${g.phone?'':'disabled'} onclick="${waFn}('${g.username}')">WhatsApp</button>
+          ${kind==='invito' ? `<button class="btn btn-ghost btn-sm" onclick="openQrModal('${g.username}')">▦ QR personale</button>` : ''}
         </div>
         ${sentAt ? `<div class="sent-note">Preparato il ${new Date(sentAt).toLocaleDateString('it-IT')} alle ${new Date(sentAt).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})} — conferma solo l'apertura del messaggio, non l'invio effettivo.</div>` : ''}
       </div>`;
@@ -955,8 +985,25 @@ function renderAdminInviti(){
     </div>
 
     <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">QR code per la stampa</p>
+      <p>Per gli inviti cartacei conviene un <strong>QR unico, identico su tutti gli inviti</strong>, invece di uno diverso per ogni invitato — così mandi in stampa un solo file. Il QR porta alla pagina di accesso normale; sul cartoncino riporti anche lo username di quella persona come testo (elenco pronto qui sotto), che l'invitato digiterà insieme alla password dopo aver inquadrato il codice.</p>
+      <button class="btn btn-accent" style="margin-top:6px;" ${s.publicBaseUrl ? '' : 'disabled title="Imposta prima l\'indirizzo pubblico del sito qui sopra"'} onclick="openUniversalQrModal()">▦ Genera QR universale</button>
+
+      <h3 style="margin-top:22px;">Elenco username da riportare sugli inviti</h3>
+      ${state.guests.length===0 ? `<p class="hint">Nessun invitato in elenco ancora.</p>` : `
+        <div style="border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-top:8px;">
+          ${[...state.guests].sort((a,b)=>a.name.localeCompare(b.name)).map((g,i)=>`
+            <div style="display:flex; justify-content:space-between; gap:10px; padding:8px 12px; ${i%2? 'background:rgba(0,0,0,.02);':''}">
+              <span>${esc(g.name)}</span>
+              <span class="mono-hint">${esc(g.username)}</span>
+            </div>`).join('')}
+        </div>`
+      }
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
       <p class="eyebrow">Come funziona</p>
-      <p>Il processo è in due tempi: prima mandi il <strong>save the date</strong> (solo l'annuncio: foto e testo, nessuna risposta richiesta). Solo agli invitati a cui l'hai già mandato compare la seconda scheda, per mandare l'<strong>invito</strong> vero e proprio — che sblocca per loro la conferma di presenza, l'eventuale brunch e i dettagli su cerimonia, ricevimento e alloggi. I solleciti riguardano solo chi ha ricevuto l'invito e non ha ancora risposto. Per ogni invitato puoi aprire un'email o una chat WhatsApp già pronte, con un link personale che pre-compila il suo username sulla pagina di accesso. Il messaggio va comunque confermato e inviato da te: il sito non spedisce nulla in autonomia.</p>
+      <p>Il processo è in due tempi: prima mandi il <strong>save the date</strong> (solo l'annuncio: foto e testo, nessuna risposta richiesta). Solo agli invitati a cui l'hai già mandato compare la seconda scheda, per mandare l'<strong>invito</strong> vero e proprio — che sblocca per loro la conferma di presenza, l'eventuale brunch e i dettagli su cerimonia, ricevimento e alloggi. I solleciti riguardano solo chi ha ricevuto l'invito e non ha ancora risposto. Per ogni invitato puoi aprire un'email o una chat WhatsApp già pronte, con un link personale che pre-compila il suo username sulla pagina di accesso. Per la stampa cartacea usa invece il QR universale qui sopra; il pulsante "QR code" accanto a ogni invitato genera invece un QR <em>personale</em> con lo username già precompilato, utile solo per casi singoli (es. una consegna a mano a una persona sola) — non per una stampa in serie. Il messaggio va comunque confermato e inviato da te (o l'invito consegnato a mano): il sito non spedisce nulla in autonomia.</p>
     </div>
 
     <div class="card" style="margin-bottom:20px;">
@@ -986,7 +1033,44 @@ function renderAdminInviti(){
       ? (readyForInvito.length===0 ? `<p>Nessuno pronto per l'invito completo: manda prima il save the date a qualcuno, poi torna qui.</p>` : readyForInvito.map(g=>contactRow(g,'invito')).join(''))
       : (pending.length===0 ? `<p>Tutti hanno risposto: nessun sollecito da mandare.</p>` : pending.map(g=>contactRow(g,'reminder')).join(''))
     }
+
+    ${renderQrModal()}
   `;
+}
+
+function renderQrModal(){
+  if(!state.qrModalUsername) return '';
+  if(state.qrModalUsername === '__universal__'){
+    const link = universalSiteLink();
+    return `
+      <div class="modal-overlay" onclick="if(event.target===this) closeQrModal();">
+        <div class="modal-box">
+          <p class="eyebrow">QR code universale</p>
+          <h3 style="margin:2px 0 0;">Uguale per tutti gli invitati</h3>
+          <img src="${qrCodeUrl(link, 500)}" alt="QR code universale del sito">
+          <p class="hint" style="word-break:break-all;">${esc(link)}</p>
+          <p class="hint">Fai clic destro sull'immagine → "Salva immagine come" per scaricarla in alta risoluzione. È lo stesso file per ogni invito: ricordati di stampare anche lo username di ciascun invitato in chiaro sulla carta (vedi elenco qui sotto).</p>
+          <button class="btn btn-ghost" style="margin-top:16px;" onclick="closeQrModal()">Chiudi</button>
+        </div>
+      </div>`;
+  }
+  const g = state.guests.find(x=>x.username===state.qrModalUsername);
+  if(!g) return '';
+  const link = personalLink(g.username);
+  return `
+    <div class="modal-overlay" onclick="if(event.target===this) closeQrModal();">
+      <div class="modal-box">
+        <p class="eyebrow">QR code invito personale</p>
+        <h3 style="margin:2px 0 0;">${esc(g.name)}</h3>
+        <img src="${qrCodeUrl(link, 500)}" alt="QR code per ${esc(g.name)}">
+        <p class="hint" style="word-break:break-all;">${esc(link)}</p>
+        <p class="hint">Fai clic destro sull'immagine → "Salva immagine come" per scaricarla in alta risoluzione, pronta per la stampa.</p>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:16px;">
+          ${!g.fullInviteSentAt ? `<button class="btn btn-primary" onclick="markInvitoSentViaQr('${g.username}')">Segna invito come consegnato</button>` : `<p class="sent-note">Invito già segnato come inviato il ${new Date(g.fullInviteSentAt).toLocaleDateString('it-IT')}.</p>`}
+          <button class="btn btn-ghost" onclick="closeQrModal()">Chiudi</button>
+        </div>
+      </div>
+    </div>`;
 }
 
 function renderAdminLuoghi(){
