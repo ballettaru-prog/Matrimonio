@@ -192,7 +192,7 @@ input[type=color]{padding:2px; height:38px;}
    ========================================================================== */
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgSJe0hGenonQV9xOM39L2egZAB0VXtrxITNUbcoNswNylctt7QCDy7SEJSe-jBUx3/exec";
 
-const backendReady = APPS_SCRIPT_URL && APPS_SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbxgSJe0hGenonQV9xOM39L2egZAB0VXtrxITNUbcoNswNylctt7QCDy7SEJSe-jBUx3/exec";
+const backendReady = APPS_SCRIPT_URL && APPS_SCRIPT_URL !== "INSERISCI_QUI";
 
 async function apiRead(action, params){
   const qs = new URLSearchParams(Object.assign({action}, params||{})).toString();
