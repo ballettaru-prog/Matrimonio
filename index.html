@@ -483,13 +483,20 @@ async function handleLogin(){
     await saveGuestRecord(guest);
   }
   state.busy = false;
-  state.currentUser = {type:'guest'};
+  state.currentUser = {type:'guest', authed:true};
   state.guestRecord = guest;
   state.view = 'guest';
   state.guestTab = guest.fullInviteSentAt ? (guest.rsvp ? 'luoghi' : 'rsvp') : 'save-the-date';
   render();
 }
 function logout(){
+  state.currentUser = null; state.guestRecord = null; state.guests = [];
+  state.view = 'login'; state.loginError = '';
+  render();
+}
+function goToLogin(){
+  // Dall'accesso diretto (non autenticato) porta al login, mantenendo lo username noto.
+  if(state.guestRecord) state.prefillGuest = state.guestRecord.username;
   state.currentUser = null; state.guestRecord = null; state.guests = [];
   state.view = 'login'; state.loginError = '';
   render();
@@ -734,8 +741,9 @@ function renderLogin(){
 function renderGuestApp(){
   const g = state.guestRecord;
   const s = state.settings;
+  const authed = state.currentUser && state.currentUser.authed;
   const tabs = [{k:'save-the-date', label:'Save the date'}];
-  if(g.fullInviteSentAt){
+  if(authed && g.fullInviteSentAt){
     tabs.push({k:'rsvp', label:'Conferma presenza'});
     if(g.brunchInvite) tabs.push({k:'brunch', label:'Brunch'});
     tabs.push({k:'luoghi', label:'Dove & quando'});
@@ -746,15 +754,23 @@ function renderGuestApp(){
 
   let body = '';
   if(state.guestTab === 'save-the-date'){
+    let footer;
+    if(!g.fullInviteSentAt){
+      footer = `<p class="hint" style="margin-top:14px;">L'invito con tutti i dettagli — e la possibilità di confermare la presenza — arriverà più avanti.</p>`;
+    } else if(!authed){
+      footer = `
+        <p class="hint" style="margin-top:16px;">L'invito è arrivato! Accedi con la password che vi abbiamo comunicato per confermare la presenza e vedere tutti i dettagli.</p>
+        <button class="btn btn-primary" style="margin-top:8px;" onclick="goToLogin()">Accedi per l'invito</button>`;
+    } else {
+      footer = `<p class="hint" style="margin-top:14px;">L'invito è arrivato: trovi la conferma di presenza e tutti i dettagli nelle schede qui sopra.</p>`;
+    }
     body = `
       <div class="card">
         <p class="eyebrow">Save the date</p>
         ${s.saveTheDate && s.saveTheDate.photo ? `<img src="${s.saveTheDate.photo}" alt="Save the date" style="width:100%; border-radius:12px; margin-bottom:14px; display:block;">` : ''}
         <h2>Ciao ${esc(g.name)}!</h2>
         ${s.saveTheDate && s.saveTheDate.text ? `<p style="white-space:pre-line;">${esc(s.saveTheDate.text)}</p>` : `<p>Segnatevi la data: vi aspettiamo!</p>`}
-        ${!g.fullInviteSentAt
-          ? `<p class="hint" style="margin-top:14px;">L'invito con tutti i dettagli — e la possibilità di confermare la presenza — arriverà più avanti.</p>`
-          : `<p class="hint" style="margin-top:14px;">L'invito è arrivato: trovi la conferma di presenza e tutti i dettagli nelle schede qui sopra.</p>`}
+        ${footer}
       </div>`;
   } else if(state.guestTab === 'rsvp'){
     body = `
@@ -827,7 +843,9 @@ function renderGuestApp(){
           ${tabs.map(t=>`<button class="nav-tab ${state.guestTab===t.k?'active':''}" onclick="state.guestTab='${t.k}'; render();">${t.label}</button>`).join('')}
         </div>
         <div class="topbar-actions">
-          <button class="btn btn-ghost btn-sm" onclick="logout()">Esci</button>
+          ${authed
+            ? `<button class="btn btn-ghost btn-sm" onclick="logout()">Esci</button>`
+            : `<button class="btn btn-ghost btn-sm" onclick="goToLogin()">Accedi</button>`}
         </div>
       </div>
     </div>
@@ -1277,6 +1295,20 @@ function render(){
   }
 
   state.loading = false;
+
+  // Apertura diretta del save the date dal link personale (?g=username), senza login.
+  // La sessione è "non autenticata": mostra solo il save the date; RSVP e dettagli
+  // riservati restano dietro password (l'invitato può accedere dal pulsante dedicato).
+  if(gParam && !state.currentUser){
+    const guest = await fetchGuestByUsername(slugify(gParam));
+    if(guest){
+      state.currentUser = {type:'guest', authed:false};
+      state.guestRecord = guest;
+      state.view = 'guest';
+      state.guestTab = 'save-the-date';
+    }
+  }
+
   render();
 })();
 </script>
