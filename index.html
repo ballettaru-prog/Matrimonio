@@ -200,9 +200,9 @@ input[type=color]{padding:2px; height:38px;}
    le istruzioni fornite insieme a questo file). Nessuna fatturazione richiesta:
    usa solo il tuo account Google normale.
    ========================================================================== */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgSJe0hGenonQV9xOM39L2egZAB0VXtrxITNUbcoNswNylctt7QCDy7SEJSe-jBUx3/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGl-FXf3k1t5EznmvCMU8Fy1tOoUbe2bAtq149fyHHcw-dVbolpWlrjn6-ywVs2xva/exec";
 
-const backendReady = APPS_SCRIPT_URL && APPS_SCRIPT_URL !== "INSERISCI_QUI";
+const backendReady = APPS_SCRIPT_URL && APPS_SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbxGl-FXf3k1t5EznmvCMU8Fy1tOoUbe2bAtq149fyHHcw-dVbolpWlrjn6-ywVs2xva/exec";
 
 async function apiRead(action, params){
   const qs = new URLSearchParams(Object.assign({action}, params||{})).toString();
@@ -243,11 +243,14 @@ function defaultSettings(){
     publicBaseUrl: '',
     welcomeTitle: 'Ci sposiamo',
     weddingDateLabel: '',
+    weddingDate: '',
+    schedule: [],
     welcomeMessage: 'Non vediamo l\'ora di festeggiare questo giorno con voi. Qui trovate tutte le informazioni per il grande giorno.',
     ceremony: { name:'', address:'', parking: [] },
     reception: { name:'', address:'', logoUrl:'' },
     hotels: [],
     saveTheDate: { photo:'', text:'' },
+    gift: { iban:'', holder:'', causale:'' },
     texts: {
       stdEyebrow: 'Save the date',
       stdGreeting: 'Ciao {nome}!',
@@ -262,7 +265,12 @@ function defaultSettings(){
       brunchTitle: 'Brunch di saluto',
       brunchText: 'Siete invitati anche al brunch informale del giorno successivo. Ci sarete?',
       brunchYes: '✓ Sì, con piacere',
-      brunchNo: '✕ Non ci sarò'
+      brunchNo: '✕ Non ci sarò',
+      giftEyebrow: 'Regalo',
+      giftTitle: 'Se volete farci un regalo',
+      giftText: 'La vostra presenza è il regalo più grande. Se però desiderate contribuire ai nostri progetti, potete farlo con un pensiero sul nostro conto:',
+      giftButton: 'Ho fatto il bonifico',
+      giftThanks: 'Grazie di cuore! Abbiamo ricevuto la tua conferma.'
     },
     templates: {
       invite: {
@@ -314,6 +322,9 @@ async function loadSettings(){
   if(!state.settings.templates) state.settings.templates = defaultSettings().templates;
   if(!state.settings.templates.invito) state.settings.templates.invito = defaultSettings().templates.invito;
   if(!state.settings.saveTheDate) state.settings.saveTheDate = defaultSettings().saveTheDate;
+  if(!state.settings.gift) state.settings.gift = defaultSettings().gift;
+  if(state.settings.weddingDate===undefined) state.settings.weddingDate='';
+  if(!Array.isArray(state.settings.schedule)) state.settings.schedule = [];
   if(!state.settings.texts) state.settings.texts = {};
   const defTexts = defaultSettings().texts;
   for(const k in defTexts){ if(state.settings.texts[k]===undefined) state.settings.texts[k] = defTexts[k]; }
@@ -350,6 +361,11 @@ function normalizeGuestObj(g){
   if(g.fullInviteSentAt===undefined) g.fullInviteSentAt=null;
   if(g.brunchInvite===undefined) g.brunchInvite=false;
   if(g.ageCategory===undefined) g.ageCategory='adulto';
+  if(g.giftDeclaredAt===undefined) g.giftDeclaredAt=null;
+  if(g.giftNote===undefined) g.giftNote='';
+  if(g.companions===undefined || g.companions==='' || g.companions===null) g.companions=0;
+  g.companions = parseInt(g.companions,10) || 0;
+  if(g.dietaryNotes===undefined) g.dietaryNotes='';
   return g;
 }
 async function fetchGuestByUsername(username){
@@ -491,6 +507,7 @@ async function handleLogin(){
     await loadAllGuestsForAdmin();
     state.busy = false;
     state.view = 'admin';
+    state.adminTab = 'invitati';
     render();
     return;
   }
@@ -538,6 +555,43 @@ async function setRsvp(value){
 async function setBrunchRsvp(value){
   state.guestRecord.brunchRsvp = value; state.guestRecord.brunchRespondedAt = Date.now();
   await saveGuestRecord(state.guestRecord); render();
+}
+function copyIban(){
+  const iban = (state.settings.gift.iban||'').replace(/\s+/g,'');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(iban).then(()=>showToast('IBAN copiato'), ()=>showToast('Copia manualmente l\'IBAN'));
+  } else showToast('Copia manualmente l\'IBAN');
+}
+async function declareGift(){
+  const noteEl = document.getElementById('gift-note');
+  state.guestRecord.giftNote = noteEl ? noteEl.value.trim() : '';
+  state.guestRecord.giftDeclaredAt = Date.now();
+  const ok = await saveGuestRecord(state.guestRecord);
+  if(!ok){ state.guestRecord.giftDeclaredAt = null; }
+  render();
+}
+async function saveRsvpDetails(){
+  const comp = document.getElementById('rsvp-companions');
+  const diet = document.getElementById('rsvp-dietary');
+  state.guestRecord.companions = comp ? (parseInt(comp.value,10)||0) : 0;
+  state.guestRecord.dietaryNotes = diet ? diet.value.trim() : '';
+  await saveGuestRecord(state.guestRecord);
+  showToast('Dettagli salvati');
+  render();
+}
+function daysToWedding(){
+  const d = state.settings.weddingDate;
+  if(!d) return null;
+  const target = new Date(d + 'T00:00:00');
+  if(isNaN(target.getTime())) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((target - today) / 86400000);
+}
+function countdownBanner(){
+  const days = daysToWedding();
+  if(days===null || days<0) return '';
+  const msg = days===0 ? 'Oggi è il grande giorno!' : days===1 ? 'Manca 1 giorno!' : `Mancano ${days} giorni`;
+  return `<p style="text-align:center; font-family:var(--font-display); font-style:italic; font-size:19px; color:var(--accent); margin:0 0 18px 0;">${msg}</p>`;
 }
 
 /* ============================= ADMIN: GUESTS ============================= */
@@ -638,6 +692,39 @@ function addParking(){
   saveSettings(); render();
 }
 function removeParking(idx){ state.settings.ceremony.parking.splice(idx,1); saveSettings(); render(); }
+function addScheduleItem(){
+  const time = document.getElementById('sched-time').value.trim();
+  const title = document.getElementById('sched-title').value.trim();
+  if(!time || !title){ showToast('Inserisci orario e descrizione'); return; }
+  state.settings.schedule.push({time, title});
+  state.settings.schedule.sort((a,b)=>a.time.localeCompare(b.time));
+  document.getElementById('sched-time').value=''; document.getElementById('sched-title').value='';
+  saveSettings(); render();
+}
+function removeScheduleItem(idx){ state.settings.schedule.splice(idx,1); saveSettings(); render(); }
+function exportGuestsCsv(){
+  const rows = [['Nome','Username','Risposta','Risposto il','Accompagnatori','Note alimentari','Brunch invitato','Brunch risposta','Categoria','Email','Telefono','Save the date inviato','Invito inviato','Bonifico confermato','Messaggio regalo']];
+  const rsvpLabel = v => v==='yes' ? 'Sì' : v==='no' ? 'No' : 'In attesa';
+  [...state.guests].sort((a,b)=>a.name.localeCompare(b.name)).forEach(g=>{
+    rows.push([
+      g.name, g.username, rsvpLabel(g.rsvp), g.respondedAt?fmtDate(g.respondedAt):'',
+      g.rsvp==='yes' ? String(g.companions||0) : '', g.dietaryNotes||'',
+      g.brunchInvite?'Sì':'No', g.brunchInvite?rsvpLabel(g.brunchRsvp):'',
+      g.ageCategory||'', g.email||'', g.phone||'',
+      g.inviteSentAt?fmtDate(g.inviteSentAt):'', g.fullInviteSentAt?fmtDate(g.fullInviteSentAt):'',
+      g.giftDeclaredAt?fmtDate(g.giftDeclaredAt):'', g.giftNote||''
+    ]);
+  });
+  const escCsv = v => '"' + String(v==null?'':v).replaceAll('"','""') + '"';
+  const csv = '\ufeff' + rows.map(r=>r.map(escCsv).join(';')).join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'invitati-matrimonio.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  showToast('Elenco esportato');
+}
 function addHotel(){
   const name = document.getElementById('hotel-name').value.trim();
   const addr = document.getElementById('hotel-addr').value.trim();
@@ -655,12 +742,20 @@ function saveSettingsFromForm(){
   state.settings.allowSelfRegister = document.getElementById('set-selfreg').checked;
   state.settings.welcomeTitle = document.getElementById('set-title').value.trim();
   state.settings.weddingDateLabel = document.getElementById('set-date').value.trim();
+  const wd = document.getElementById('set-wdate');
+  if(wd) state.settings.weddingDate = wd.value;
   state.settings.welcomeMessage = document.getElementById('set-msg').value.trim();
   state.settings.ceremony.name = document.getElementById('cer-name').value.trim();
   state.settings.ceremony.address = document.getElementById('cer-addr').value.trim();
   state.settings.reception.name = document.getElementById('rec-name').value.trim();
   state.settings.reception.address = document.getElementById('rec-addr').value.trim();
   state.settings.reception.logoUrl = document.getElementById('rec-logo').value.trim();
+  const gIban = document.getElementById('gift-iban');
+  if(gIban){
+    state.settings.gift.iban = gIban.value.trim();
+    state.settings.gift.holder = document.getElementById('gift-holder').value.trim();
+    state.settings.gift.causale = document.getElementById('gift-causale').value.trim();
+  }
   saveSettings(); render();
 }
 function saveThemeFromForm(){
@@ -785,6 +880,7 @@ function renderGuestApp(){
     tabs.push({k:'rsvp', label:t.rsvpEyebrow});
     if(g.brunchInvite) tabs.push({k:'brunch', label:'Brunch'});
     tabs.push({k:'luoghi', label:'Dove & quando'});
+    if(s.gift && s.gift.iban) tabs.push({k:'regalo', label:t.giftEyebrow});
   }
 
   // Se la tab richiesta non è (più) disponibile per questo ospite, si torna al save the date
@@ -821,6 +917,18 @@ function renderGuestApp(){
           <button class="rsvp-btn no ${g.rsvp==='no'?'selected':''}" onclick="setRsvp('no')">${esc(t.rsvpNo)}</button>
         </div>
         ${g.rsvp ? `<p class="hint">Risposta registrata il ${fmtDate(g.respondedAt)}. Puoi modificarla in qualsiasi momento.</p>` : ''}
+        ${g.rsvp==='yes' ? `
+          <div style="border-top:1px solid var(--line); margin-top:18px; padding-top:16px;">
+            <div class="field">
+              <label>Oltre a te, quante persone porti? (accompagnatori)</label>
+              <select id="rsvp-companions">${[0,1,2,3,4,5,6,7,8,9].map(n=>`<option value="${n}" ${g.companions===n?'selected':''}>${n===0?'Nessuno, vengo da solo/a':'+'+n}</option>`).join('')}</select>
+            </div>
+            <div class="field">
+              <label>Allergie o intolleranze alimentari (tue e degli accompagnatori)</label>
+              <textarea id="rsvp-dietary" rows="2" placeholder="Es. 1 celiaco, 1 vegetariano, allergia alle noci…">${esc(g.dietaryNotes)}</textarea>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="saveRsvpDetails()">Salva dettagli</button>
+          </div>` : ''}
       </div>`;
   } else if(state.guestTab === 'brunch' && g.brunchInvite){
     body = `
@@ -834,8 +942,40 @@ function renderGuestApp(){
         </div>
         ${g.brunchRsvp ? `<p class="hint">Risposta registrata il ${fmtDate(g.brunchRespondedAt)}.</p>` : ''}
       </div>`;
+  } else if(state.guestTab === 'regalo' && s.gift && s.gift.iban){
+    const gi = s.gift;
+    body = `
+      <div class="card">
+        <p class="eyebrow">${esc(t.giftEyebrow)}</p>
+        <h2>${esc(t.giftTitle)}</h2>
+        <p>${esc(t.giftText)}</p>
+        <div style="background:rgba(175,138,63,0.08); border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin:16px 0;">
+          ${gi.holder ? `<p style="margin:0 0 6px 0;"><strong>Intestato a:</strong> ${esc(gi.holder)}</p>` : ''}
+          <p style="margin:0 0 6px 0; word-break:break-all;"><strong>IBAN:</strong> <span style="font-family:monospace; font-size:15px;">${esc(gi.iban)}</span></p>
+          ${gi.causale ? `<p style="margin:0;"><strong>Causale suggerita:</strong> ${esc(gi.causale)}</p>` : ''}
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="copyIban()">📋 Copia IBAN</button>
+        <div style="margin-top:22px; border-top:1px solid var(--line); padding-top:18px;">
+          ${g.giftDeclaredAt
+            ? `<p style="color:var(--green); font-weight:600;">${esc(t.giftThanks)}</p>
+               <p class="hint">Confermato il ${fmtDate(g.giftDeclaredAt)}${g.giftNote ? ' — «'+esc(g.giftNote)+'»' : ''}</p>`
+            : `<p class="hint">Dopo aver fatto il bonifico, facci sapere qui (così possiamo ringraziarti!):</p>
+               <div class="field" style="margin-top:10px;"><textarea id="gift-note" rows="2" placeholder="Un messaggio per gli sposi (facoltativo)"></textarea></div>
+               <button class="btn btn-primary" onclick="declareGift()">${esc(t.giftButton)}</button>`
+          }
+        </div>
+      </div>`;
   } else {
     body = `
+      ${s.schedule && s.schedule.length ? `
+      <div class="info-block card" style="margin-bottom:18px;">
+        <p class="eyebrow">Programma della giornata</p>
+        ${s.schedule.map(it=>`
+          <div style="display:flex; gap:14px; padding:7px 0; border-bottom:1px solid #ece5d2;">
+            <strong style="min-width:56px; color:var(--accent2);">${esc(it.time)}</strong>
+            <span style="color:var(--ink-soft);">${esc(it.title)}</span>
+          </div>`).join('')}
+      </div>` : ''}
       <div class="info-block card" style="margin-bottom:18px;">
         <p class="eyebrow">Cerimonia</p>
         <h3>${esc(s.ceremony.name || 'Da definire')}</h3>
@@ -887,7 +1027,7 @@ function renderGuestApp(){
         </div>
       </div>
     </div>
-    <main><div class="wrap">${body}</div></main>
+    <main><div class="wrap">${countdownBanner()}${body}</div></main>
     <div class="footer-note">${esc(s.welcomeMessage)}</div>
   `;
 }
@@ -932,14 +1072,42 @@ function renderAdminGuests(total, yes, no, pending){
   const filtered = state.guests
     .filter(g => g.name.toLowerCase().includes(filter.toLowerCase()))
     .sort((a,b)=>a.name.localeCompare(b.name));
+  const gifts = state.guests.filter(g=>g.giftDeclaredAt).sort((a,b)=>(b.giftDeclaredAt||0)-(a.giftDeclaredAt||0));
+  const companionsSum = state.guests.filter(g=>g.rsvp==='yes').reduce((acc,g)=>acc+(g.companions||0),0);
+  const totalPeople = yes + companionsSum;
+  const dietary = state.guests.filter(g=>g.rsvp==='yes' && g.dietaryNotes);
+  const dietaryCard = dietary.length ? `
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Note alimentari per il catering (${dietary.length})</p>
+      ${dietary.map(g=>`
+        <div class="list-item-row">
+          <div class="grow"><strong>${esc(g.name)}</strong>${g.companions?` <span class="hint">(+${g.companions})</span>`:''}<br><span class="hint">${esc(g.dietaryNotes)}</span></div>
+        </div>`).join('')}
+    </div>` : '';
+  const giftCard = (state.settings.gift && state.settings.gift.iban) ? `
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Regali — bonifici confermati dagli invitati (${gifts.length})</p>
+      <p class="hint" style="margin-top:-4px;">Sono le conferme lasciate dagli invitati nella scheda "Regalo": incrociatele con l'estratto conto. Visibile solo a voi.</p>
+      ${gifts.length===0 ? `<p class="hint">Nessuna conferma per ora.</p>` : gifts.map(g=>`
+        <div class="list-item-row">
+          <div class="grow">
+            <strong>${esc(g.name)}</strong> <span class="hint">— ${fmtDate(g.giftDeclaredAt)}</span>
+            ${g.giftNote ? `<br><span class="hint">«${esc(g.giftNote)}»</span>` : ''}
+          </div>
+        </div>`).join('')}
+    </div>` : '';
 
   return `
+    ${giftCard}
     <div class="stat-row">
       <div class="stat"><div class="num">${total}</div><div class="lbl">Invitati totali</div></div>
       <div class="stat"><div class="num" style="color:var(--green)">${yes}</div><div class="lbl">Confermati</div></div>
+      <div class="stat"><div class="num" style="color:var(--green)">${totalPeople}</div><div class="lbl">Persone (con +${companionsSum})</div></div>
       <div class="stat"><div class="num" style="color:var(--red)">${no}</div><div class="lbl">Non partecipano</div></div>
       <div class="stat"><div class="num" style="color:var(--orange)">${pending}</div><div class="lbl">In attesa</div></div>
     </div>
+
+    ${dietaryCard}
 
     <div class="card" style="margin-bottom:20px;">
       <p class="eyebrow">Aggiungi invitato</p>
@@ -953,7 +1121,10 @@ function renderAdminGuests(total, yes, no, pending){
     <div class="card">
       <div class="toolbar">
         <p class="eyebrow" style="margin:0;">Elenco invitati</p>
-        <input type="text" placeholder="Cerca per nome…" value="${esc(filter)}" oninput="state.guestFilter=this.value; render();">
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="text" placeholder="Cerca per nome…" value="${esc(filter)}" oninput="state.guestFilter=this.value; render();">
+          <button class="btn btn-ghost btn-sm" onclick="exportGuestsCsv()">⬇ Esporta Excel</button>
+        </div>
       </div>
       <table>
         <thead><tr>
@@ -1199,6 +1370,7 @@ function renderAdminLuoghi(){
       <div class="swatch-row">
         <div class="field"><label>Nomi degli sposi</label><input type="text" id="set-couple" value="${esc(s.coupleNames)}"></div>
         <div class="field"><label>Data (etichetta libera)</label><input type="text" id="set-date" value="${esc(s.weddingDateLabel)}" placeholder="Es. 12 Settembre 2026"></div>
+        <div class="field"><label>Data esatta (per il conto alla rovescia)</label><input type="date" id="set-wdate" value="${esc(s.weddingDate)}"></div>
       </div>
       <div class="swatch-row">
         <div class="field"><label>Password di accesso (per tutti)</label><input type="text" id="set-pass" value="${esc(s.password)}"></div>
@@ -1244,6 +1416,32 @@ function renderAdminLuoghi(){
       </div>
       <div class="field"><label>Logo della location (URL, facoltativo)</label><input type="text" id="rec-logo" value="${esc(s.reception.logoUrl)}" placeholder="https://..."></div>
       <button class="btn btn-primary" onclick="saveSettingsFromForm()">Salva sezione ricevimento</button>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Programma della giornata</p>
+      <p class="hint" style="margin-top:-4px;">Gli orari appaiono in cima alla scheda "Dove & quando" degli invitati. L'elenco si ordina da solo per orario.</p>
+      ${s.schedule.map((it,i)=>`
+        <div class="list-item-row">
+          <div class="grow"><strong>${esc(it.time)}</strong> — ${esc(it.title)}</div>
+          <button class="btn btn-outline-red btn-sm" onclick="removeScheduleItem(${i})">Rimuovi</button>
+        </div>`).join('')}
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <input type="time" id="sched-time" style="padding:9px 12px; border:1px solid var(--line); border-radius:9px;">
+        <input type="text" id="sched-title" placeholder="Es. Cerimonia in comune" style="flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:9px;" onkeydown="if(event.key==='Enter')addScheduleItem();">
+        <button class="btn btn-ghost" onclick="addScheduleItem()">Aggiungi</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Regalo (bonifico)</p>
+      <p>Se compili l'IBAN, agli invitati (dopo il login e la ricezione dell'invito) compare la scheda "Regalo" con i dati per il bonifico e un pulsante per farvi sapere quando l'hanno fatto. L'elenco di chi ha confermato è visibile solo a voi, nella scheda Invitati. Lascia vuoto l'IBAN per non mostrare nulla.</p>
+      <div class="field"><label>IBAN</label><input type="text" id="gift-iban" value="${esc(s.gift.iban)}" placeholder="IT00 X000 0000 0000 0000 0000 000"></div>
+      <div class="swatch-row">
+        <div class="field"><label>Intestatario (facoltativo)</label><input type="text" id="gift-holder" value="${esc(s.gift.holder)}" placeholder="Es. Ruggero Balletta e Claudia Mannino"></div>
+        <div class="field"><label>Causale suggerita (facoltativa)</label><input type="text" id="gift-causale" value="${esc(s.gift.causale)}" placeholder="Es. Regalo di nozze - [vostro nome]"></div>
+      </div>
+      <button class="btn btn-primary" onclick="saveSettingsFromForm()">Salva sezione regalo</button>
     </div>
 
     <div class="card">
