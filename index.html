@@ -248,6 +248,22 @@ function defaultSettings(){
     reception: { name:'', address:'', logoUrl:'' },
     hotels: [],
     saveTheDate: { photo:'', text:'' },
+    texts: {
+      stdEyebrow: 'Save the date',
+      stdGreeting: 'Ciao {nome}!',
+      stdWaiting: "L'invito con tutti i dettagli — e la possibilità di confermare la presenza — arriverà più avanti.",
+      stdArrivedHint: "L'invito è arrivato: trovi la conferma di presenza e tutti i dettagli nelle schede qui sopra.",
+      rsvpEyebrow: 'Conferma presenza',
+      rsvpTitle: 'Ciao {nome}, ci sarai?',
+      rsvpText: 'Facci sapere se potrai unirti a noi per il nostro giorno speciale.',
+      rsvpYes: '✓ Sì, ci sarò',
+      rsvpNo: '✕ Non potrò esserci',
+      brunchEyebrow: 'Il giorno dopo',
+      brunchTitle: 'Brunch di saluto',
+      brunchText: 'Siete invitati anche al brunch informale del giorno successivo. Ci sarete?',
+      brunchYes: '✓ Sì, con piacere',
+      brunchNo: '✕ Non ci sarò'
+    },
     templates: {
       invite: {
         subject: 'Save the date - {sposi}',
@@ -273,7 +289,11 @@ const FONT_PAIRS = {
   botanical: { display:"'Fraunces', serif", body:"'Inter', sans-serif", label:'Fraunces + Inter' },
   romantico: { display:"'Cormorant Garamond', serif", body:"'Work Sans', sans-serif", label:'Cormorant + Work Sans' },
   moderno: { display:"'Playfair Display', serif", body:"'Inter', sans-serif", label:'Playfair + Inter' },
-  classico: { display:"'Fraunces', serif", body:"'Source Sans 3', sans-serif", label:'Fraunces + Source Sans' }
+  classico: { display:"'Fraunces', serif", body:"'Source Sans 3', sans-serif", label:'Fraunces + Source Sans' },
+  raffinato: { display:"'Playfair Display', serif", body:"'Work Sans', sans-serif", label:'Playfair + Work Sans' },
+  editoriale: { display:"'Cormorant Garamond', serif", body:"'Inter', sans-serif", label:'Cormorant + Inter' },
+  minimale: { display:"'Playfair Display', serif", body:"'Source Sans 3', sans-serif", label:'Playfair + Source Sans' },
+  contemporaneo: { display:"'Fraunces', serif", body:"'Work Sans', sans-serif", label:'Fraunces + Work Sans' }
 };
 
 /* ============================= USERNAME / SLUG ============================= */
@@ -294,6 +314,9 @@ async function loadSettings(){
   if(!state.settings.templates) state.settings.templates = defaultSettings().templates;
   if(!state.settings.templates.invito) state.settings.templates.invito = defaultSettings().templates.invito;
   if(!state.settings.saveTheDate) state.settings.saveTheDate = defaultSettings().saveTheDate;
+  if(!state.settings.texts) state.settings.texts = {};
+  const defTexts = defaultSettings().texts;
+  for(const k in defTexts){ if(state.settings.texts[k]===undefined) state.settings.texts[k] = defTexts[k]; }
   if(!state.settings.ceremony) state.settings.ceremony = defaultSettings().ceremony;
   if(!Array.isArray(state.settings.ceremony.parking)) state.settings.ceremony.parking = [];
   if(!state.settings.reception) state.settings.reception = defaultSettings().reception;
@@ -360,6 +383,11 @@ function fmtDate(ts){
   if(!ts) return '—';
   const d = new Date(ts);
   return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('it-IT');
+}
+function guestText(tpl, guest){
+  return String(tpl==null?'':tpl)
+    .replaceAll('{nome}', guest ? guest.name : '')
+    .replaceAll('{sposi}', state.settings.coupleNames || '');
 }
 function fmtTime(ts){
   const d = new Date(ts);
@@ -644,6 +672,14 @@ function saveThemeFromForm(){
   state.settings.theme.fontPair = document.getElementById('th-font').value;
   applyTheme(); saveSettings(); render();
 }
+function saveTextsFromForm(){
+  const keys = Object.keys(defaultSettings().texts);
+  keys.forEach(k=>{
+    const el = document.getElementById('txt-'+k);
+    if(el) state.settings.texts[k] = el.value;
+  });
+  saveSettings(); render();
+}
 function saveTemplatesFromForm(){
   state.settings.templates.invite.subject = document.getElementById('tpl-invite-subject').value;
   state.settings.templates.invite.body = document.getElementById('tpl-invite-body').value;
@@ -715,7 +751,7 @@ function renderLogin(){
         <p class="eyebrow" style="text-align:center;">${esc(state.settings.weddingDateLabel || 'Save the date')}</p>
         <h1>${esc(state.settings.welcomeTitle)}</h1>
         <div class="thread" style="max-width:180px; margin:0 auto 18px auto;"></div>
-        <p style="font-size:18x;">${esc(state.settings.coupleNames)}</p>
+        <p style="font-size:18px;">${esc(state.settings.coupleNames)}</p>
       </div>
       <div class="card">
         ${state.prefillGuest ? `<p class="hint" style="margin-top:0; margin-bottom:16px; padding:10px 12px; background:rgba(179,102,122,0.08); border-radius:9px; color:var(--ink);">È arrivato il nostro invito! Il tuo nome utente è già inserito: aggiungi la password che ti abbiamo comunicato per confermare la presenza e vedere tutti i dettagli.</p>` : ''}
@@ -742,58 +778,59 @@ function renderLogin(){
 function renderGuestApp(){
   const g = state.guestRecord;
   const s = state.settings;
+  const t = s.texts;
   const authed = state.currentUser && state.currentUser.authed;
-  const tabs = [{k:'save-the-date', label:'Save the date'}];
+  const tabs = [{k:'save-the-date', label:t.stdEyebrow}];
   if(authed && g.fullInviteSentAt){
-    tabs.push({k:'rsvp', label:'Conferma presenza'});
+    tabs.push({k:'rsvp', label:t.rsvpEyebrow});
     if(g.brunchInvite) tabs.push({k:'brunch', label:'Brunch'});
     tabs.push({k:'luoghi', label:'Dove & quando'});
   }
 
   // Se la tab richiesta non è (più) disponibile per questo ospite, si torna al save the date
-  if(!tabs.some(t=>t.k===state.guestTab)) state.guestTab = 'save-the-date';
+  if(!tabs.some(tab=>tab.k===state.guestTab)) state.guestTab = 'save-the-date';
 
   let body = '';
   if(state.guestTab === 'save-the-date'){
     let footer;
     if(!g.fullInviteSentAt){
-      footer = `<p class="hint" style="margin-top:14px;">L'invito con tutti i dettagli — e la possibilità di confermare la presenza — arriverà più avanti.</p>`;
+      footer = `<p class="hint" style="margin-top:14px;">${esc(t.stdWaiting)}</p>`;
     } else if(!authed){
       footer = `
         <p class="hint" style="margin-top:16px;">L'invito è arrivato! Accedi con la password che vi abbiamo comunicato per confermare la presenza e vedere tutti i dettagli.</p>
         <button class="btn btn-primary" style="margin-top:8px;" onclick="goToLogin()">Accedi per l'invito</button>`;
     } else {
-      footer = `<p class="hint" style="margin-top:14px;">L'invito è arrivato: trovi la conferma di presenza e tutti i dettagli nelle schede qui sopra.</p>`;
+      footer = `<p class="hint" style="margin-top:14px;">${esc(t.stdArrivedHint)}</p>`;
     }
     body = `
       <div class="card">
-        <p class="eyebrow">Save the date</p>
+        <p class="eyebrow">${esc(t.stdEyebrow)}</p>
         ${s.saveTheDate && s.saveTheDate.photo ? `<img src="${s.saveTheDate.photo}" alt="Save the date" style="width:100%; border-radius:12px; margin-bottom:14px; display:block;">` : ''}
-        <h2>Ciao ${esc(g.name)}!</h2>
-        ${s.saveTheDate && s.saveTheDate.text ? `<p style="white-space:pre-line;">${esc(s.saveTheDate.text)}</p>` : `<p>Segnatevi la data: vi aspettiamo!</p>`}
+        <h2>${esc(guestText(t.stdGreeting, g))}</h2>
+        ${s.saveTheDate && s.saveTheDate.text ? `<p style="white-space:pre-line;">${esc(s.saveTheDate.text)}</p>` : ''}
         ${footer}
       </div>`;
   } else if(state.guestTab === 'rsvp'){
     body = `
       <div class="card">
-        <p class="eyebrow">Conferma presenza</p>
-        <h2>Ciao ${esc(g.name)}, ci sarai?</h2>
-        <p>Facci sapere se potrai unirti a noi per il nostro giorno speciale.</p>
+        <p class="eyebrow">${esc(t.rsvpEyebrow)}</p>
+        <h2>${esc(guestText(t.rsvpTitle, g))}</h2>
+        <p>${esc(t.rsvpText)}</p>
         <div class="rsvp-choice">
-          <button class="rsvp-btn yes ${g.rsvp==='yes'?'selected':''}" onclick="setRsvp('yes')">✓ Sì, ci sarò</button>
-          <button class="rsvp-btn no ${g.rsvp==='no'?'selected':''}" onclick="setRsvp('no')">✕ Non potrò esserci</button>
+          <button class="rsvp-btn yes ${g.rsvp==='yes'?'selected':''}" onclick="setRsvp('yes')">${esc(t.rsvpYes)}</button>
+          <button class="rsvp-btn no ${g.rsvp==='no'?'selected':''}" onclick="setRsvp('no')">${esc(t.rsvpNo)}</button>
         </div>
         ${g.rsvp ? `<p class="hint">Risposta registrata il ${fmtDate(g.respondedAt)}. Puoi modificarla in qualsiasi momento.</p>` : ''}
       </div>`;
   } else if(state.guestTab === 'brunch' && g.brunchInvite){
     body = `
       <div class="card">
-        <p class="eyebrow">Il giorno dopo</p>
-        <h2>Brunch di saluto</h2>
-        <p>Siete invitati anche al brunch informale del giorno successivo. Ci sarete?</p>
+        <p class="eyebrow">${esc(t.brunchEyebrow)}</p>
+        <h2>${esc(t.brunchTitle)}</h2>
+        <p>${esc(t.brunchText)}</p>
         <div class="rsvp-choice">
-          <button class="rsvp-btn yes ${g.brunchRsvp==='yes'?'selected':''}" onclick="setBrunchRsvp('yes')">✓ Sì, con piacere</button>
-          <button class="rsvp-btn no ${g.brunchRsvp==='no'?'selected':''}" onclick="setBrunchRsvp('no')">✕ Non ci sarò</button>
+          <button class="rsvp-btn yes ${g.brunchRsvp==='yes'?'selected':''}" onclick="setBrunchRsvp('yes')">${esc(t.brunchYes)}</button>
+          <button class="rsvp-btn no ${g.brunchRsvp==='no'?'selected':''}" onclick="setBrunchRsvp('no')">${esc(t.brunchNo)}</button>
         </div>
         ${g.brunchRsvp ? `<p class="hint">Risposta registrata il ${fmtDate(g.brunchRespondedAt)}.</p>` : ''}
       </div>`;
@@ -957,15 +994,11 @@ function renderAdminGuests(total, yes, no, pending){
 
 function renderAdminSaveTheDate(){
   const std = state.settings.saveTheDate;
-  const sorted = [...state.guests].sort((a,b)=>a.name.localeCompare(b.name));
-  const pendingWa = sorted.filter(g=>g.phone && !g.inviteSentAt);
-  const sentCount = sorted.filter(g=>g.inviteSentAt).length;
-  const noPhoneCount = sorted.filter(g=>!g.phone).length;
 
   return `
     <div class="card" style="margin-bottom:20px;">
       <p class="eyebrow">Save the date</p>
-      <p>Qui componi il save the date che gli invitati vedono quando aprono il loro link (foto + testo), e qui sotto puoi anche mandarlo su WhatsApp a tutti i contatti dell'elenco invitati. L'invito completo con i dettagli logistici resta un passo separato, nella scheda "Inviti".</p>
+      <p>Qui componi il save the date che gli invitati vedono quando aprono il loro link (foto + testo), e qui sotto trovi lo strumento per inviarlo a tutti in una volta con una lista broadcast WhatsApp. L'invito completo con i dettagli logistici resta un passo separato, nella scheda "Inviti".</p>
     </div>
 
     <div class="card" style="margin-bottom:20px;">
@@ -988,25 +1021,44 @@ function renderAdminSaveTheDate(){
     </div>
 
     <div class="card">
-      <p class="eyebrow">Broadcast WhatsApp</p>
-      <p class="hint" style="margin-top:-6px;">WhatsApp non permette di mandare a più numeri con un solo click da browser: qui sotto trovi una coda pronta, uno alla volta — apri, mandi il messaggio già scritto, e quel nome sparisce da solo dall'elenco. Il testo usato è quello della scheda "Inviti" → Save the date.</p>
-      <p class="hint" style="margin-top:8px;">${pendingWa.length} in coda · ${sentCount} già inviati · ${noPhoneCount} senza numero di telefono</p>
-      <div style="margin-top:12px;">
-        ${pendingWa.length===0
-          ? `<p class="hint">Nessuno in coda: o hai già mandato il save the date a tutti quelli con un numero, o mancano ancora i numeri di telefono (si aggiungono nella scheda Invitati).</p>`
-          : pendingWa.map(g=>`
-              <div class="invite-row">
-                <div class="invite-row-top">
-                  <div><strong>${esc(g.name)}</strong><div class="mono-hint">${esc(g.phone)}</div></div>
-                </div>
-                <div class="invite-actions">
-                  <button class="btn btn-wa btn-sm" onclick="sendInviteWa('${g.username}')">WhatsApp</button>
-                </div>
-              </div>`).join('')
-        }
+      <p class="eyebrow">Invio con lista broadcast WhatsApp</p>
+      <p>Il modo più veloce per mandare il save the date a tutti in una volta: la <strong>lista broadcast</strong> di WhatsApp (gratis, i destinatari ricevono un messaggio privato, non un gruppo). Copia il messaggio qui sotto, crea la lista broadcast su WhatsApp e incollalo. Ognuno aprirà il link e inserirà il proprio nome utente per accedere.</p>
+      <p class="hint">Nota: WhatsApp consegna la lista broadcast solo a chi ha il tuo numero salvato in rubrica (per gli invitati di un matrimonio è quasi sempre così). A chi non ti ha in rubrica, manda il messaggio normalmente.</p>
+
+      <div class="field" style="margin-top:16px;">
+        <label>Messaggio pronto (link generico del sito + istruzioni)</label>
+        <textarea id="broadcast-text" rows="9" readonly style="background:#faf7ef;">${esc(broadcastMessage())}</textarea>
       </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-accent" onclick="copyBroadcast()">📋 Copia messaggio</button>
+        <a class="btn btn-wa" href="https://wa.me/?text=${encodeURIComponent(broadcastMessage())}" target="_blank" rel="noopener">Apri WhatsApp con il messaggio</a>
+      </div>
+
+      <h3 style="margin-top:22px;">Come si crea una lista broadcast</h3>
+      <ol style="color:var(--ink-soft); font-size:13.5px; line-height:1.7; padding-left:20px; margin:6px 0 0;">
+        <li>Apri WhatsApp sul telefono → menu (⋮ in alto a destra su Android, o "Nuova chat" su iPhone) → <strong>Nuova lista broadcast</strong>.</li>
+        <li>Seleziona tutti gli invitati che vuoi avvisare, poi conferma.</li>
+        <li>Incolla il messaggio copiato qui sopra e invia: lo ricevono tutti come messaggio privato.</li>
+      </ol>
+      ${!state.settings.publicBaseUrl ? `<p class="hint" style="color:var(--red); margin-top:12px;">Attenzione: non hai ancora impostato l'indirizzo pubblico del sito (scheda Inviti). Finché non lo fai, il link nel messaggio non funzionerà.</p>` : ''}
     </div>
   `;
+}
+
+function broadcastMessage(){
+  const s = state.settings;
+  const link = universalSiteLink();
+  return `Ciao! ${s.coupleNames} si sposano 💍\n\nSegnatevi la data! Trovate il nostro save the date qui:\n${link}\n\nPer entrare, il vostro nome utente è nome+cognome tutto attaccato e minuscolo (es. Mario Rossi → mariorossi). La password ve l'abbiamo comunicata a voce.\n\nA presto! ${s.coupleNames}`;
+}
+function copyBroadcast(){
+  const txt = broadcastMessage();
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>showToast('Messaggio copiato'), ()=>fallbackCopy(txt));
+  } else fallbackCopy(txt);
+}
+function fallbackCopy(txt){
+  const ta = document.getElementById('broadcast-text');
+  if(ta){ ta.removeAttribute('readonly'); ta.select(); try{ document.execCommand('copy'); showToast('Messaggio copiato'); }catch(e){ showToast('Copia manualmente il testo'); } ta.setAttribute('readonly','readonly'); }
 }
 
 function renderAdminInviti(){
@@ -1253,7 +1305,45 @@ function renderAdminTema(){
       <input type="text" placeholder="https://..." value="${esc(th.bgImage)}" onchange="setThemeImageUrl('bgImage', this.value)">
       ${th.bgImage ? `<button class="btn btn-outline-red btn-sm" style="margin-top:8px;" onclick="removeThemeImage('bgImage')">Rimuovi</button>` : ''}
     </div>
+
+    <div class="card" style="margin-top:20px;">
+      <p class="eyebrow">Testi delle schede ospite</p>
+      <p>Personalizza tutto ciò che gli invitati leggono. Nei titoli puoi usare <strong>{nome}</strong> (nome dell'invitato) e <strong>{sposi}</strong> (i vostri nomi).</p>
+
+      <h3 style="margin-top:16px;">Scheda "Save the date"</h3>
+      ${textField('stdEyebrow','Etichetta in alto')}
+      ${textField('stdGreeting','Saluto (con {nome})')}
+      ${textField('stdWaiting','Nota — invito non ancora inviato', true)}
+      ${textField('stdArrivedHint','Nota — invito già inviato (utente collegato)', true)}
+
+      <h3 style="margin-top:18px;">Scheda "Conferma presenza"</h3>
+      ${textField('rsvpEyebrow','Etichetta in alto')}
+      ${textField('rsvpTitle','Titolo (con {nome})')}
+      ${textField('rsvpText','Testo', true)}
+      <div class="swatch-row">
+        <div class="field" style="flex:1;"><label>Pulsante "Sì"</label><input type="text" id="txt-rsvpYes" value="${esc(state.settings.texts.rsvpYes)}"></div>
+        <div class="field" style="flex:1;"><label>Pulsante "No"</label><input type="text" id="txt-rsvpNo" value="${esc(state.settings.texts.rsvpNo)}"></div>
+      </div>
+
+      <h3 style="margin-top:18px;">Scheda "Brunch"</h3>
+      ${textField('brunchEyebrow','Etichetta in alto')}
+      ${textField('brunchTitle','Titolo')}
+      ${textField('brunchText','Testo', true)}
+      <div class="swatch-row">
+        <div class="field" style="flex:1;"><label>Pulsante "Sì"</label><input type="text" id="txt-brunchYes" value="${esc(state.settings.texts.brunchYes)}"></div>
+        <div class="field" style="flex:1;"><label>Pulsante "No"</label><input type="text" id="txt-brunchNo" value="${esc(state.settings.texts.brunchNo)}"></div>
+      </div>
+
+      <button class="btn btn-primary" style="margin-top:8px;" onclick="saveTextsFromForm()">Salva testi</button>
+    </div>
   `;
+}
+function textField(key, label, multiline){
+  const val = esc(state.settings.texts[key]);
+  const input = multiline
+    ? `<textarea id="txt-${key}" rows="2">${val}</textarea>`
+    : `<input type="text" id="txt-${key}" value="${val}">`;
+  return `<div class="field"><label>${esc(label)}</label>${input}</div>`;
 }
 
 /* ============================= MAIN RENDER ============================= */
