@@ -1243,16 +1243,17 @@ function renderAdminGuests(total, yes, no, pending){
       </div>
       <table>
         <thead><tr>
-          <th>Save the date</th><th>Nome / username</th><th>Risposto il</th><th>Brunch</th><th>Categoria</th><th>Stato brunch</th><th></th>
+          <th>Save the date</th><th>Nome / username</th><th>Risposto il</th><th>Accompagnatori</th><th>Brunch</th><th>Categoria</th><th>Stato brunch</th><th></th>
         </tr></thead>
         <tbody>
-          ${filtered.length===0 ? `<tr><td colspan="7" style="text-align:center; color:var(--ink-soft); padding:20px;">Nessun invitato trovato.</td></tr>` : filtered.map(g=>{
+          ${filtered.length===0 ? `<tr><td colspan="8" style="text-align:center; color:var(--ink-soft); padding:20px;">Nessun invitato trovato.</td></tr>` : filtered.map(g=>{
             const st = statusOf(g,'rsvp');
             const bst = g.brunchInvite ? statusOf(g,'brunch') : null;
             return `<tr>
               <td><span class="seal ${st.cls}" title="${st.label}"></span></td>
               <td><strong>${esc(g.name)}</strong><br><span class="hint">utente: ${esc(g.username)}</span></td>
               <td>${fmtDate(g.respondedAt)}</td>
+              <td style="text-align:center;">${g.rsvp==='yes' ? (g.companions>0 ? `<strong style="color:var(--accent);">+${g.companions}</strong>` : `<span class="hint">Solo</span>`) : `<span class="hint">—</span>`}</td>
               <td>
                 <label style="display:flex; align-items:center; gap:6px; font-size:12.5px;">
                   <input type="checkbox" ${g.brunchInvite?'checked':''} onchange="toggleBrunch('${g.username}')"> invitato
