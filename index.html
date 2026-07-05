@@ -109,12 +109,31 @@ p{line-height:1.55; color:var(--ink-soft); margin:0 0 12px 0;}
 }
 .topbar-inner{display:flex; align-items:center; justify-content:space-between; padding:14px 24px; max-width:980px; margin:0 auto; flex-wrap:wrap; gap:10px;}
 .brand{font-family:var(--font-display); font-style:italic; font-size:19px;}
-.nav-tabs{display:flex; gap:6px; flex-wrap:wrap;}
-.nav-tab{
-  padding:7px 14px; border-radius:999px; font-size:13.5px; font-weight:600;
-  background:transparent; border:1px solid transparent; color:var(--ink-soft);
+.nav-tabs{
+  display:flex; gap:8px; flex-wrap:wrap;
 }
-.nav-tab.active{background:var(--ink); color:#fdfbf4;}
+.nav-tab{
+  padding:9px 16px; border-radius:999px; font-size:14px; font-weight:600;
+  background:transparent; border:1.5px solid var(--line); color:var(--ink-soft);
+  transition: all 0.15s ease;
+  white-space:nowrap;
+}
+.nav-tab:hover{ border-color:var(--accent); color:var(--accent); }
+.nav-tab.active{background:var(--ink); color:#fdfbf4; border-color:var(--ink);}
+
+/* Su mobile la barra tab va sotto il brand a tutta larghezza, con scroll orizzontale se serve */
+@media (max-width: 720px){
+  .topbar-inner{ padding:12px 16px; }
+  .nav-tabs{
+    order:3; width:100%;
+    overflow-x:auto; flex-wrap:nowrap;
+    padding:4px 2px 6px 2px; margin-top:4px;
+    scrollbar-width:none;
+  }
+  .nav-tabs::-webkit-scrollbar{ display:none; }
+  .brand{ font-size:17px; }
+  .nav-tab{ font-size:13.5px; padding:8px 14px; }
+}
 .topbar-actions{display:flex; align-items:center; gap:10px;}
 
 main{flex:1; padding:32px 0 60px 0;}
@@ -201,9 +220,9 @@ input[type=color]{padding:2px; height:38px;}
    usa solo il tuo account Google normale.
    ========================================================================== */
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgSJe0hGenonQV9xOM39L2egZAB0VXtrxITNUbcoNswNylctt7QCDy7SEJSe-jBUx3/exec";
-  
+
 const backendReady = APPS_SCRIPT_URL && APPS_SCRIPT_URL !== "INSERISCI_QUI";
-  
+
 async function apiRead(action, params){
   const qs = new URLSearchParams(Object.assign({action}, params||{})).toString();
   const res = await fetch(APPS_SCRIPT_URL + '?' + qs);
@@ -251,6 +270,7 @@ function defaultSettings(){
     hotels: [],
     saveTheDate: { photo:'', text:'' },
     gift: { iban:'', holder:'', causale:'' },
+    playlistEnabled: false,
     texts: {
       stdEyebrow: 'Save the date',
       stdGreeting: 'Ciao {nome}!',
@@ -270,7 +290,10 @@ function defaultSettings(){
       giftTitle: 'Se volete farci un regalo',
       giftText: 'La vostra presenza è il regalo più grande. Se però desiderate contribuire ai nostri progetti, potete farlo con un pensiero sul nostro conto:',
       giftButton: 'Ho fatto il bonifico',
-      giftThanks: 'Grazie di cuore! Abbiamo ricevuto la tua conferma.'
+      giftThanks: 'Grazie di cuore! Abbiamo ricevuto la tua conferma.',
+      playlistEyebrow: 'Playlist',
+      playlistTitle: 'Suggerisci una canzone',
+      playlistText: 'Aiutaci a costruire la playlist del ricevimento: quali canzoni non possono mancare per farti scatenare?'
     },
     templates: {
       invite: {
@@ -323,6 +346,7 @@ async function loadSettings(){
   if(!state.settings.templates.invito) state.settings.templates.invito = defaultSettings().templates.invito;
   if(!state.settings.saveTheDate) state.settings.saveTheDate = defaultSettings().saveTheDate;
   if(!state.settings.gift) state.settings.gift = defaultSettings().gift;
+  if(state.settings.playlistEnabled===undefined) state.settings.playlistEnabled = false;
   if(state.settings.weddingDate===undefined) state.settings.weddingDate='';
   if(!Array.isArray(state.settings.schedule)) state.settings.schedule = [];
   if(!state.settings.texts) state.settings.texts = {};
@@ -366,6 +390,7 @@ function normalizeGuestObj(g){
   if(g.companions===undefined || g.companions==='' || g.companions===null) g.companions=0;
   g.companions = parseInt(g.companions,10) || 0;
   if(g.dietaryNotes===undefined) g.dietaryNotes='';
+  if(!Array.isArray(g.songSuggestions)) g.songSuggestions=[];
   return g;
 }
 async function fetchGuestByUsername(username){
@@ -579,6 +604,27 @@ async function saveRsvpDetails(){
   showToast('Dettagli salvati');
   render();
 }
+async function addSongSuggestion(){
+  const t = document.getElementById('song-title');
+  const a = document.getElementById('song-artist');
+  const title = t.value.trim();
+  const artist = a.value.trim();
+  if(!title){ showToast('Inserisci almeno il titolo'); return; }
+  if(state.guestRecord.songSuggestions.length >= 5){ showToast('Massimo 5 canzoni per invitato'); return; }
+  state.guestRecord.songSuggestions.push({ title, artist, addedAt: Date.now() });
+  t.value=''; a.value='';
+  await saveGuestRecord(state.guestRecord);
+  render();
+}
+async function removeSongSuggestion(idx){
+  state.guestRecord.songSuggestions.splice(idx, 1);
+  await saveGuestRecord(state.guestRecord);
+  render();
+}
+function togglePlaylist(v){
+  state.settings.playlistEnabled = !!v;
+  saveSettings(); render();
+}
 function daysToWedding(){
   const d = state.settings.weddingDate;
   if(!d) return null;
@@ -702,6 +748,23 @@ function addScheduleItem(){
   saveSettings(); render();
 }
 function removeScheduleItem(idx){ state.settings.schedule.splice(idx,1); saveSettings(); render(); }
+function exportPlaylistCsv(){
+  const rows = [['Titolo','Artista','Suggerita da','Data']];
+  state.guests.forEach(g=>{
+    (g.songSuggestions||[]).forEach(s=>{
+      rows.push([s.title||'', s.artist||'', g.name, s.addedAt?fmtDate(s.addedAt):'']);
+    });
+  });
+  const escCsv = v => '"' + String(v==null?'':v).replaceAll('"','""') + '"';
+  const csv = '\ufeff' + rows.map(r=>r.map(escCsv).join(';')).join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'playlist-suggerimenti.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  showToast('Playlist esportata');
+}
 function exportGuestsCsv(){
   const rows = [['Nome','Username','Risposta','Risposto il','Accompagnatori','Note alimentari','Brunch invitato','Brunch risposta','Categoria','Email','Telefono','Save the date inviato','Invito inviato','Bonifico confermato','Messaggio regalo']];
   const rsvpLabel = v => v==='yes' ? 'Sì' : v==='no' ? 'No' : 'In attesa';
@@ -875,12 +938,13 @@ function renderGuestApp(){
   const s = state.settings;
   const t = s.texts;
   const authed = state.currentUser && state.currentUser.authed;
-  const tabs = [{k:'save-the-date', label:t.stdEyebrow}];
+  const tabs = [{k:'save-the-date', label:'📅 '+t.stdEyebrow}];
   if(authed && g.fullInviteSentAt){
-    tabs.push({k:'rsvp', label:t.rsvpEyebrow});
-    if(g.brunchInvite) tabs.push({k:'brunch', label:'Brunch'});
-    tabs.push({k:'luoghi', label:'Dove & quando'});
-    if(s.gift && s.gift.iban) tabs.push({k:'regalo', label:t.giftEyebrow});
+    tabs.push({k:'rsvp', label:'✓ '+t.rsvpEyebrow});
+    if(g.brunchInvite) tabs.push({k:'brunch', label:'🥐 Brunch'});
+    tabs.push({k:'luoghi', label:'📍 Dove & quando'});
+    if(s.gift && s.gift.iban) tabs.push({k:'regalo', label:'🎁 '+t.giftEyebrow});
+    if(s.playlistEnabled) tabs.push({k:'playlist', label:'🎵 '+t.playlistEyebrow});
   }
 
   // Se la tab richiesta non è (più) disponibile per questo ospite, si torna al save the date
@@ -964,6 +1028,32 @@ function renderGuestApp(){
                <button class="btn btn-primary" onclick="declareGift()">${esc(t.giftButton)}</button>`
           }
         </div>
+      </div>`;
+  } else if(state.guestTab === 'playlist' && s.playlistEnabled){
+    const mine = state.guestRecord.songSuggestions || [];
+    body = `
+      <div class="card">
+        <p class="eyebrow">${esc(t.playlistEyebrow)}</p>
+        <h2>${esc(t.playlistTitle)}</h2>
+        <p>${esc(t.playlistText)}</p>
+        <p class="hint">Puoi suggerire fino a 5 canzoni. Le decisioni finali le prendono gli sposi (e il DJ!).</p>
+
+        ${mine.length ? `
+          <h3 style="margin-top:18px;">Le tue proposte</h3>
+          ${mine.map((s,i)=>`
+            <div class="list-item-row">
+              <div class="grow"><strong>${esc(s.title)}</strong>${s.artist?` <span class="hint">— ${esc(s.artist)}</span>`:''}</div>
+              <button class="btn btn-outline-red btn-sm" onclick="removeSongSuggestion(${i})">Rimuovi</button>
+            </div>`).join('')}
+        ` : ''}
+
+        ${mine.length < 5 ? `
+          <div style="border-top:1px solid var(--line); margin-top:18px; padding-top:16px;">
+            <div class="field"><label>Titolo canzone</label><input type="text" id="song-title" placeholder="Es. Wonderwall"></div>
+            <div class="field"><label>Artista (facoltativo)</label><input type="text" id="song-artist" placeholder="Es. Oasis" onkeydown="if(event.key==='Enter')addSongSuggestion();"></div>
+            <button class="btn btn-primary" onclick="addSongSuggestion()">Aggiungi alla playlist</button>
+          </div>
+        ` : `<p class="hint" style="margin-top:14px;">Hai raggiunto il massimo di 5 proposte. Rimuovine una se vuoi sostituirla.</p>`}
       </div>`;
   } else {
     body = `
@@ -1084,6 +1174,18 @@ function renderAdminGuests(total, yes, no, pending){
           <div class="grow"><strong>${esc(g.name)}</strong>${g.companions?` <span class="hint">(+${g.companions})</span>`:''}<br><span class="hint">${esc(g.dietaryNotes)}</span></div>
         </div>`).join('')}
     </div>` : '';
+  const allSongs = [];
+  state.guests.forEach(g=>{ (g.songSuggestions||[]).forEach(s=>allSongs.push({...s, by:g.name})); });
+  const playlistCard = (state.settings.playlistEnabled && allSongs.length) ? `
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Playlist — proposte dagli invitati (${allSongs.length})</p>
+      <p class="hint" style="margin-top:-4px;">Elenco di tutte le canzoni suggerite. Utile da esportare per il DJ.</p>
+      ${allSongs.sort((a,b)=>(b.addedAt||0)-(a.addedAt||0)).map(s=>`
+        <div class="list-item-row">
+          <div class="grow"><strong>${esc(s.title)}</strong>${s.artist?` — ${esc(s.artist)}`:''}<br><span class="hint">Suggerita da ${esc(s.by)}</span></div>
+        </div>`).join('')}
+      <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="exportPlaylistCsv()">⬇ Esporta playlist</button>
+    </div>` : '';
   const giftCard = (state.settings.gift && state.settings.gift.iban) ? `
     <div class="card" style="margin-bottom:20px;">
       <p class="eyebrow">Regali — bonifici confermati dagli invitati (${gifts.length})</p>
@@ -1099,6 +1201,7 @@ function renderAdminGuests(total, yes, no, pending){
 
   return `
     ${giftCard}
+    ${playlistCard}
     <div class="stat-row">
       <div class="stat"><div class="num">${total}</div><div class="lbl">Invitati totali</div></div>
       <div class="stat"><div class="num" style="color:var(--green)">${yes}</div><div class="lbl">Confermati</div></div>
@@ -1442,6 +1545,15 @@ function renderAdminLuoghi(){
         <div class="field"><label>Causale suggerita (facoltativa)</label><input type="text" id="gift-causale" value="${esc(s.gift.causale)}" placeholder="Es. Regalo di nozze - [vostro nome]"></div>
       </div>
       <button class="btn btn-primary" onclick="saveSettingsFromForm()">Salva sezione regalo</button>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Playlist collaborativa</p>
+      <p>Se attiva, gli invitati (dopo aver ricevuto l'invito completo) trovano una scheda "Playlist" dove suggerire fino a 5 canzoni per il ricevimento. Vedete tutte le proposte aggregate nella scheda Invitati.</p>
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin-top:8px;">
+        <input type="checkbox" id="playlist-enabled" ${s.playlistEnabled?'checked':''} onchange="togglePlaylist(this.checked)">
+        <span>Attiva playlist collaborativa</span>
+      </label>
     </div>
 
     <div class="card">
