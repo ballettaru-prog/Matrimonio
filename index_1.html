@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ruggero e Claudia</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Work+Sans:wght@400;500;600&family=Playfair+Display:wght@500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#f6f1e4;
+  --bg-panel:#fffdf7;
+  --ink:#1f2a24;
+  --ink-soft:#5b665c;
+  --accent:#b3667a;
+  --accent2:#af8a3f;
+  --line:#d9d0ba;
+  --green:#5f8259;
+  --red:#a8503f;
+  --orange:#c1893f;
+  --font-display:'Fraunces', serif;
+  --font-body:'Inter', sans-serif;
+  --radius:14px;
+  --bg-image: none;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font-body);
+  color:var(--ink);
+  background: var(--bg-image), linear-gradient(var(--bg), var(--bg));
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+*{ box-sizing:border-box; }
+img{ max-width:100%; height:auto; }
+#app{min-height:100vh; display:flex; flex-direction:column;}
+a{color:inherit;}
+button{font-family:inherit; cursor:pointer;}
+input,select,textarea{font-family:inherit; font-size:14px;}
+
+.wrap{max-width:980px; margin:0 auto; padding:0 24px; width:100%;}
+.center-wrap{flex:1; display:flex; align-items:center; justify-content:center; padding:24px;}
+
+.thread{
+  width:100%; height:14px; margin:6px 0 18px 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='14'><path d='M0 7 Q 15 0 30 7 T 60 7 T 90 7 T 120 7' fill='none' stroke='%23b3667a' stroke-width='1.4' stroke-linecap='round'/></svg>");
+  background-repeat:repeat-x; opacity:0.6;
+}
+
+.card{
+  background:var(--bg-panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:28px;
+  box-shadow:0 1px 2px rgba(31,42,36,0.04);
+}
+.eyebrow{
+  font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--accent2); font-weight:600; margin:0 0 6px 0;
+}
+h1,h2,h3{font-family:var(--font-display); font-weight:600; margin:0 0 8px 0; color:var(--ink);}
+h1{font-size:clamp(28px,4vw,42px); font-style:italic; font-weight:500;}
+h2{font-size:22px;}
+h3{font-size:16px;}
+p{line-height:1.55; color:var(--ink-soft); margin:0 0 12px 0;}
+
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; letter-spacing:.02em;}
+.field input, .field select, .field textarea{
+  width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:9px;
+  background:#fff; color:var(--ink); outline:none;
+}
+.field input:focus, .field select:focus, .field textarea:focus{border-color:var(--accent);}
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:10px 18px; border-radius:999px; border:1px solid transparent;
+  font-size:14px; font-weight:600; letter-spacing:.01em; transition:opacity .15s, transform .1s;
+}
+.btn:active{transform:scale(0.98);}
+.btn-primary{background:var(--ink); color:#fdfbf4;}
+.btn-primary:hover{opacity:.88;}
+.btn-accent{background:var(--accent); color:#fff;}
+.btn-accent:hover{opacity:.88;}
+.btn-ghost{background:transparent; color:var(--ink); border-color:var(--line);}
+.btn-ghost:hover{border-color:var(--ink);}
+.btn-outline-red{background:#fff; color:var(--red); border-color:var(--red);}
+.btn-mail{background:#fff; color:var(--accent2); border-color:var(--accent2);}
+.btn-wa{background:#fff; color:#3f8a5a; border-color:#3f8a5a;}
+.btn-sm{padding:6px 13px; font-size:12.5px;}
+.btn[disabled]{opacity:.4; cursor:default;}
+.btn-block{width:100%;}
+
+.error-msg{color:var(--red); font-size:13px; margin:-6px 0 14px 0;}
+.hint{font-size:12.5px; color:var(--ink-soft); margin-top:4px;}
+.mono-hint{font-size:12px; color:var(--accent2); font-weight:600; margin-top:2px;}
+
+.seal{width:13px;height:13px;border-radius:50%; display:inline-block; box-shadow: inset 0 -1px 2px rgba(0,0,0,.25), 0 0 0 2px rgba(255,255,255,.6);}
+.seal.green{background:var(--green);}
+.seal.red{background:var(--red);}
+.seal.orange{background:var(--orange);}
+.status-row{display:flex; align-items:center; gap:8px;}
+.status-label{font-size:13px; color:var(--ink-soft);}
+
+.topbar{
+  background:rgba(255,253,247,0.85); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); position:sticky; top:0; z-index:10;
+}
+.topbar-inner{display:flex; align-items:center; justify-content:space-between; padding:14px 24px; max-width:980px; margin:0 auto; flex-wrap:wrap; gap:10px;}
+.brand{font-family:var(--font-display); font-style:italic; font-size:19px;}
+.nav-tabs{
+  display:flex; gap:8px; flex-wrap:wrap;
+}
+.nav-tab{
+  padding:9px 16px; border-radius:999px; font-size:14px; font-weight:600;
+  background:transparent; border:1.5px solid var(--line); color:var(--ink-soft);
+  transition: all 0.15s ease;
+  white-space:nowrap;
+}
+.nav-tab:hover{ border-color:var(--accent); color:var(--accent); }
+.nav-tab.active{background:var(--ink); color:#fdfbf4; border-color:var(--ink);}
+
+/* Mobile: brand a sinistra + azioni a destra sulla stessa riga, tab sotto a tutta larghezza */
+@media (max-width: 720px){
+  .topbar-inner{
+    padding:12px 16px;
+    flex-wrap:wrap;
+    row-gap:10px;
+    max-width:100%;
+  }
+  .brand{ font-size:17px; flex:1; min-width:0; }
+  .topbar-actions{ flex-shrink:0; }
+  .nav-tabs{
+    order:99; width:100%;
+    overflow-x:auto; flex-wrap:nowrap;
+    padding:2px 16px 4px 16px;
+    margin:0 -16px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .nav-tabs::-webkit-scrollbar{ display:none; }
+  .nav-tab{ font-size:13.5px; padding:8px 14px; flex-shrink:0; }
+  .wrap{ padding:0 16px; }
+}
+.topbar-actions{display:flex; align-items:center; gap:10px;}
+
+main{flex:1; padding:32px 0 60px 0;}
+
+.rsvp-choice{display:flex; gap:12px; margin:18px 0;}
+.rsvp-btn{flex:1; padding:16px; border-radius:12px; border:1.5px solid var(--line); background:#fff; text-align:center; font-weight:600; font-size:15px;}
+.rsvp-btn.yes.selected{border-color:var(--green); background:rgba(95,130,89,0.1); color:var(--green);}
+.rsvp-btn.no.selected{border-color:var(--red); background:rgba(168,80,63,0.1); color:var(--red);}
+.rsvp-btn:hover{border-color:var(--accent);}
+
+.info-block{margin-bottom:26px;}
+.info-block .addr{font-size:14px; color:var(--ink-soft); margin-bottom:10px;}
+.map-link-btn{margin:6px 0 4px 0;}
+.tag-list{list-style:none; padding:0; margin:10px 0 0 0; display:flex; flex-direction:column; gap:6px;}
+.tag-list li{font-size:13.5px; color:var(--ink-soft); padding-left:16px; position:relative;}
+.tag-list li:before{content:'—'; position:absolute; left:0; color:var(--accent2);}
+
+table{width:100%; border-collapse:collapse; font-size:13.5px;}
+th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); padding:8px 10px; border-bottom:1px solid var(--line);}
+td{padding:9px 10px; border-bottom:1px solid #ece5d2; vertical-align:middle;}
+tr:hover td{background:rgba(179,102,122,0.04);}
+
+.toolbar{display:flex; gap:10px; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap;}
+.toolbar input[type=text]{width:220px;}
+
+.stat-row{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:22px;}
+.stat{flex:1; min-width:120px; background:var(--bg-panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px;}
+.stat .num{font-family:var(--font-display); font-size:26px; font-style:italic;}
+.stat .lbl{font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft);}
+
+.list-item-row{display:flex; gap:10px; align-items:flex-start; padding:12px; border:1px solid var(--line); border-radius:10px; margin-bottom:10px; background:#fff;}
+.list-item-row .grow{flex:1;}
+.chip{display:inline-block; font-size:11px; padding:2px 9px; border-radius:999px; background:rgba(175,138,63,0.15); color:var(--accent2); font-weight:600;}
+.chip.wait{background:rgba(193,137,63,0.18); color:var(--orange);}
+
+.swatch-row{display:flex; gap:10px; flex-wrap:wrap;}
+.swatch-row .field{flex:1; min-width:140px;}
+input[type=color]{padding:2px; height:38px;}
+
+.invite-row{border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:12px; background:#fff;}
+.invite-row-top{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+.invite-contacts{display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;}
+.invite-contacts input{padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-size:13px; width:200px;}
+.invite-actions{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;}
+.sent-note{font-size:11.5px; color:var(--ink-soft); margin-top:6px;}
+
+.toast{
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+  background:var(--ink); color:#fdfbf4; padding:10px 18px; border-radius:999px; font-size:13px;
+  box-shadow:0 6px 20px rgba(0,0,0,.2); z-index:100; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(-6px);}
+
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(31,42,36,.55); z-index:200;
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.modal-box{
+  background:var(--bg-panel); border-radius:16px; padding:28px; max-width:380px; width:100%;
+  text-align:center; box-shadow:0 20px 50px rgba(0,0,0,.25);
+}
+.modal-box img{width:100%; max-width:280px; border-radius:8px; border:1px solid var(--line); margin:14px 0;}
+
+.footer-note{text-align:center; color:var(--ink-soft); font-size:12px; margin-top:36px;}
+
+@media(max-width:640px){
+  .topbar-inner{flex-direction:column; align-items:flex-start; gap:10px;}
+  .rsvp-choice{flex-direction:column;}
+  .toolbar{flex-direction:column; align-items:stretch;}
+  .toolbar input[type=text]{width:100%;}
+  .invite-contacts input{width:100%;}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =============================================================================
+   CONFIGURAZIONE — incolla qui l'URL del tuo Web App di Google Apps Script
+   (lo ottieni dopo aver pubblicato lo script collegato al Google Sheet, vedi
+   le istruzioni fornite insieme a questo file). Nessuna fatturazione richiesta:
+   usa solo il tuo account Google normale.
+   ========================================================================== */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgSJe0hGenonQV9xOM39L2egZAB0VXtrxITNUbcoNswNylctt7QCDy7SEJSe-jBUx3/exec";
+
+const backendReady = APPS_SCRIPT_URL && APPS_SCRIPT_URL !== "INSERISCI_QUI";
+
+async function apiRead(action, params){
+  const qs = new URLSearchParams(Object.assign({action}, params||{})).toString();
+  const res = await fetch(APPS_SCRIPT_URL + '?' + qs);
+  return await res.json();
+}
+async function apiWrite(action, params){
+  const res = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(Object.assign({action}, params||{}))
+  });
+  return await res.json();
+}
+
+/* ============================= STATE ============================= */
+let state = {
+  settings: null,
+  guests: [],            // populated only for admin sessions
+  currentUser: null,     // {type:'admin'} | {type:'guest'}
+  guestRecord: null,     // populated only for the logged-in guest's own record
+  view: 'login',
+  adminTab: 'invitati',
+  guestTab: 'save-the-date',
+  invitiSubTab: 'da-invitare',
+  qrModalUsername: null,
+  loading: true,
+  loginError: '',
+  prefillGuest: '',
+  busy: false
+};
+
+function defaultSettings(){
+  return {
+    coupleNames: 'Ruggero & Claudia',
+    password: 'ruggeroclaudia',
+    adminUsername: 'sposi',
+    allowSelfRegister: false,
+    publicBaseUrl: '',
+    welcomeTitle: 'Ci sposiamo',
+    weddingDateLabel: '',
+    weddingDate: '',
+    schedule: [],
+    welcomeMessage: 'Non vediamo l\'ora di festeggiare questo giorno con voi. Qui trovate tutte le informazioni per il grande giorno.',
+    ceremony: { name:'', address:'', parking: [] },
+    reception: { name:'', address:'', logoUrl:'' },
+    hotels: [],
+    saveTheDate: { photo:'', text:'' },
+    gift: { iban:'', holder:'', causale:'' },
+    playlistEnabled: false,
+    texts: {
+      stdEyebrow: 'Save the date',
+      stdGreeting: 'Ciao {nome}!',
+      stdWaiting: "L'invito con tutti i dettagli — e la possibilità di confermare la presenza — arriverà più avanti.",
+      stdArrivedHint: "L'invito è arrivato: trovi la conferma di presenza e tutti i dettagli nelle schede qui sopra.",
+      rsvpEyebrow: 'Conferma presenza',
+      rsvpTitle: 'Ciao {nome}, ci sarai?',
+      rsvpText: 'Facci sapere se potrai unirti a noi per il nostro giorno speciale.',
+      rsvpYes: '✓ Sì, ci sarò',
+      rsvpNo: '✕ Non potrò esserci',
+      brunchEyebrow: 'Il giorno dopo',
+      brunchTitle: 'Brunch di saluto',
+      brunchText: 'Siete invitati anche al brunch informale del giorno successivo. Ci sarete?',
+      brunchYes: '✓ Sì, con piacere',
+      brunchNo: '✕ Non ci sarò',
+      giftEyebrow: 'Regalo',
+      giftTitle: 'Se volete farci un regalo',
+      giftText: 'La vostra presenza è il regalo più grande. Se però desiderate contribuire ai nostri progetti, potete farlo con un pensiero sul nostro conto:',
+      giftButton: 'Ho fatto il bonifico',
+      giftThanks: 'Grazie di cuore! Abbiamo ricevuto la tua conferma.',
+      playlistEyebrow: 'Playlist',
+      playlistTitle: 'Suggerisci una canzone',
+      playlistText: 'Aiutaci a costruire la playlist del ricevimento: quali canzoni non possono mancare per farti scatenare?'
+    },
+    templates: {
+      invite: {
+        subject: 'Save the date - {sposi}',
+        body: 'Ciao {nome}!\n\n{sposi} si sposano: segnatevi la data!\n\nScopri il nostro annuncio qui:\n{link}\n\nUsername: {username}\nPassword: quella che vi abbiamo comunicato a voce\n\nL\'invito con tutti i dettagli arriverà più avanti. A presto!'
+      },
+      reminder: {
+        subject: 'Un piccolo promemoria - {sposi}',
+        body: 'Ciao {nome},\n\nnon abbiamo ancora ricevuto la tua risposta al nostro invito. Ci farebbe piacere sapere se ci sarai!\n\nPuoi rispondere qui:\n{link}\n\nGrazie di cuore, {sposi}'
+      },
+      invito: {
+        subject: 'Il nostro invito - {sposi}',
+        body: 'Ciao {nome}!\n\nÈ arrivato il momento: ecco il nostro invito con tutti i dettagli su cerimonia, ricevimento e dove dormire.\n\nEntra qui per confermare la tua presenza:\n{link}\n\nA prestissimo, {sposi}'
+      }
+    },
+    theme: {
+      bg:'#f6f1e4', panel:'#fffdf7', ink:'#1f2a24', accent:'#b3667a', accent2:'#af8a3f',
+      fontPair:'botanical', bgImage:'', heroImage:''
+    }
+  };
+}
+
+const FONT_PAIRS = {
+  botanical: { display:"'Fraunces', serif", body:"'Inter', sans-serif", label:'Fraunces + Inter' },
+  romantico: { display:"'Cormorant Garamond', serif", body:"'Work Sans', sans-serif", label:'Cormorant + Work Sans' },
+  moderno: { display:"'Playfair Display', serif", body:"'Inter', sans-serif", label:'Playfair + Inter' },
+  classico: { display:"'Fraunces', serif", body:"'Source Sans 3', sans-serif", label:'Fraunces + Source Sans' },
+  raffinato: { display:"'Playfair Display', serif", body:"'Work Sans', sans-serif", label:'Playfair + Work Sans' },
+  editoriale: { display:"'Cormorant Garamond', serif", body:"'Inter', sans-serif", label:'Cormorant + Inter' },
+  minimale: { display:"'Playfair Display', serif", body:"'Source Sans 3', sans-serif", label:'Playfair + Source Sans' },
+  contemporaneo: { display:"'Fraunces', serif", body:"'Work Sans', sans-serif", label:'Fraunces + Work Sans' }
+};
+
+/* ============================= USERNAME / SLUG ============================= */
+function slugify(name){
+  return (name||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-zA-Z0-9]/g,'')
+    .toLowerCase();
+}
+
+/* ============================= STORAGE: SETTINGS (Google Sheet via Apps Script) ============================= */
+async function loadSettings(){
+  /* Fino a 3 tentativi. Se la lettura fallisce NON si ripiega sui valori predefiniti
+     (prima succedeva: l'invitato vedeva un save the date vuoto e un salvataggio
+     successivo dal pannello sposi sovrascriveva il database con i predefiniti). */
+  let res = null;
+  for(let attempt = 0; attempt < 3; attempt++){
+    try{
+      res = await apiRead('getSettings', {});
+      if(res && res.data && res.data.coupleNames !== undefined) break;
+    }catch(e){ res = null; }
+    await new Promise(r => setTimeout(r, 1500));
+  }
+  if(!res || !res.data || res.data.coupleNames === undefined){
+    state.settingsError = true;
+    state.settingsOk = false;
+    state.settings = defaultSettings(); // solo per poter disegnare la pagina, mai salvato
+  } else {
+    state.settings = res.data;
+    state.settingsOk = true;
+    state.settingsError = false;
+  }
+  if(!state.settings.templates) state.settings.templates = defaultSettings().templates;
+  if(!state.settings.templates.invito) state.settings.templates.invito = defaultSettings().templates.invito;
+  if(!state.settings.saveTheDate) state.settings.saveTheDate = defaultSettings().saveTheDate;
+  if(!state.settings.gift) state.settings.gift = defaultSettings().gift;
+  if(state.settings.playlistEnabled===undefined) state.settings.playlistEnabled = false;
+  if(state.settings.weddingDate===undefined) state.settings.weddingDate='';
+  if(!Array.isArray(state.settings.schedule)) state.settings.schedule = [];
+  if(!state.settings.texts) state.settings.texts = {};
+  const defTexts = defaultSettings().texts;
+  for(const k in defTexts){ if(state.settings.texts[k]===undefined) state.settings.texts[k] = defTexts[k]; }
+  if(!state.settings.ceremony) state.settings.ceremony = defaultSettings().ceremony;
+  if(!Array.isArray(state.settings.ceremony.parking)) state.settings.ceremony.parking = [];
+  if(!state.settings.reception) state.settings.reception = defaultSettings().reception;
+  if(!Array.isArray(state.settings.hotels)) state.settings.hotels = [];
+  if(!state.settings.theme) state.settings.theme = defaultSettings().theme;
+  if(state.settings.reception && state.settings.reception.logoUrl===undefined) state.settings.reception.logoUrl='';
+}
+async function saveSettings(){
+  if(!state.settingsOk){ showToast('Impostazioni non caricate correttamente: ricarica la pagina prima di salvare'); return; }
+  try{
+    await apiWrite('setSettings', {data: state.settings});
+    showToast('Impostazioni salvate');
+  }catch(e){ showToast('Errore nel salvataggio'); }
+}
+
+/* ============================= STORAGE: GUESTS (one row per guest in the "Guests" sheet tab) =============================
+   Each guest is one row in the Google Sheet, keyed by username. A guest session only ever
+   asks the backend for its own username, so other guests' data (brunch invites, contacts,
+   rsvp) is never loaded into a guest's browser. Only the sposi (admin) session asks for
+   the full list. */
+function normalizeGuestObj(g){
+  if(g.id===undefined) g.id = g.username;
+  if(g.name===undefined) g.name='';
+  if(g.rsvp===undefined) g.rsvp=null;
+  if(g.respondedAt===undefined) g.respondedAt=null;
+  if(g.brunchRsvp===undefined) g.brunchRsvp=null;
+  if(g.brunchRespondedAt===undefined) g.brunchRespondedAt=null;
+  if(g.email===undefined) g.email='';
+  if(g.phone===undefined) g.phone='';
+  if(g.inviteSentAt===undefined) g.inviteSentAt=null;
+  if(g.reminderSentAt===undefined) g.reminderSentAt=null;
+  if(g.fullInviteSentAt===undefined) g.fullInviteSentAt=null;
+  if(g.brunchInvite===undefined) g.brunchInvite=false;
+  if(g.ageCategory===undefined) g.ageCategory='adulto';
+  if(g.giftDeclaredAt===undefined) g.giftDeclaredAt=null;
+  if(g.giftNote===undefined) g.giftNote='';
+  if(g.companions===undefined || g.companions==='' || g.companions===null) g.companions=0;
+  g.companions = parseInt(g.companions,10) || 0;
+  if(g.dietaryNotes===undefined) g.dietaryNotes='';
+  if(!Array.isArray(g.songSuggestions)) g.songSuggestions=[];
+  return g;
+}
+async function fetchGuestByUsername(username){
+  try{
+    const res = await apiRead('getGuest', {username});
+    return res && res.data ? normalizeGuestObj(res.data) : null;
+  }catch(e){ return null; }
+}
+async function saveGuestRecord(g){
+  try{ await apiWrite('setGuest', {username: g.username, data: g}); return true; }
+  catch(e){ showToast('Errore nel salvataggio'); return false; }
+}
+async function deleteGuestRecord(username){
+  try{ await apiWrite('deleteGuest', {username}); }catch(e){}
+}
+async function fetchAllGuests(){
+  try{
+    const res = await apiRead('getAllGuests', {});
+    return (res && res.data ? res.data : []).map(normalizeGuestObj);
+  }catch(e){ return []; }
+}
+async function loadAllGuestsForAdmin(){
+  state.guests = await fetchAllGuests();
+}
+
+/* ============================= HELPERS ============================= */
+function esc(str){
+  return String(str==null?'':str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtDate(ts){
+  if(!ts) return '—';
+  const d = new Date(ts);
+  return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('it-IT');
+}
+function guestText(tpl, guest){
+  return String(tpl==null?'':tpl)
+    .replaceAll('{nome}', guest ? guest.name : '')
+    .replaceAll('{sposi}', state.settings.coupleNames || '');
+}
+function fmtTime(ts){
+  const d = new Date(ts);
+  return isNaN(d.getTime()) ? '' : d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+}
+function mapLinkButton(address){
+  if(!address) return '';
+  const url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(address);
+  return `<a href="${url}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm map-link-btn">📍 Apri in Google Maps</a>`;
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function applyTheme(){
+  const th = state.settings.theme;
+  const root = document.documentElement.style;
+  root.setProperty('--bg', th.bg);
+  root.setProperty('--bg-panel', th.panel);
+  root.setProperty('--ink', th.ink);
+  root.setProperty('--accent', th.accent);
+  root.setProperty('--accent2', th.accent2);
+  const fp = FONT_PAIRS[th.fontPair] || FONT_PAIRS.botanical;
+  root.setProperty('--font-display', fp.display);
+  root.setProperty('--font-body', fp.body);
+  root.setProperty('--bg-image', th.bgImage ? `linear-gradient(rgba(246,241,228,0.55), rgba(246,241,228,0.55)), url('${th.bgImage}')` : 'none');
+}
+function removeThemeImage(field){
+  state.settings.theme[field] = '';
+  applyTheme(); saveSettings(); render();
+}
+function setThemeImageUrl(field, value){
+  state.settings.theme[field] = value.trim();
+  applyTheme(); saveSettings(); render();
+}
+function statusOf(g, field){
+  const val = field === 'rsvp' ? g.rsvp : g.brunchRsvp;
+  if(val === 'yes') return {cls:'green', label: field==='rsvp' ? 'Confermato' : 'Sì al brunch'};
+  if(val === 'no') return {cls:'red', label: field==='rsvp' ? 'Non parteciperà' : 'No al brunch'};
+  return {cls:'orange', label:'In attesa'};
+}
+function personalLink(username){
+  const base = state.settings.publicBaseUrl
+    ? state.settings.publicBaseUrl.trim().replace(/\/$/, '')
+    : (window.location.origin + window.location.pathname);
+  return base + '?g=' + encodeURIComponent(username);
+}
+function universalSiteLink(){
+  return state.settings.publicBaseUrl
+    ? state.settings.publicBaseUrl.trim().replace(/\/$/, '')
+    : (window.location.origin + window.location.pathname);
+}
+function fillTemplate(tpl, guest){
+  const link = personalLink(guest.username);
+  const rep = (t)=> t
+    .replaceAll('{nome}', guest.name)
+    .replaceAll('{username}', guest.username)
+    .replaceAll('{sposi}', state.settings.coupleNames)
+    .replaceAll('{link}', link)
+    .replaceAll('{data}', state.settings.weddingDateLabel||'');
+  return { subject: rep(tpl.subject), body: rep(tpl.body) };
+}
+function stripPhone(phone){ return (phone||'').replace(/[^\d]/g,''); }
+function mailtoUrl(guest, tpl){
+  const f = fillTemplate(tpl, guest);
+  return 'mailto:' + encodeURIComponent(guest.email) + '?subject=' + encodeURIComponent(f.subject) + '&body=' + encodeURIComponent(f.body);
+}
+function waUrl(guest, tpl){
+  const f = fillTemplate(tpl, guest);
+  const digits = stripPhone(guest.phone);
+  return 'https://wa.me/' + digits + '?text=' + encodeURIComponent(f.subject + '\n\n' + f.body);
+}
+function qrCodeUrl(link, size){
+  // Servizio pubblico gratuito, nessuna chiave richiesta. ecc=H = massima correzione
+  // errori, utile per un QR stampato su carta (resiste a pieghe/macchie leggere).
+  return 'https://api.qrserver.com/v1/create-qr-code/?size=' + size + 'x' + size + '&ecc=H&margin=12&data=' + encodeURIComponent(link);
+}
+function openQrModal(username){ state.qrModalUsername = username; render(); }
+function openUniversalQrModal(){ state.qrModalUsername = '__universal__'; render(); }
+function closeQrModal(){ state.qrModalUsername = null; render(); }
+function markInvitoSentViaQr(username){
+  markSent(username, 'invito');
+  closeQrModal();
+  showToast('Invito segnato come inviato');
+}
+
+/* ============================= AUTH ============================= */
+async function handleLogin(){
+  const rawUsername = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value;
+  state.loginError = '';
+  if(!rawUsername || !password){ state.loginError = 'Inserisci nome utente e password.'; render(); return; }
+  if(password !== state.settings.password){ state.loginError = 'Password non corretta.'; render(); return; }
+
+  if(rawUsername.toLowerCase() === state.settings.adminUsername.toLowerCase()){
+    state.busy = true; render();
+    state.currentUser = {type:'admin'};
+    await loadAllGuestsForAdmin();
+    state.busy = false;
+    state.view = 'admin';
+    state.adminTab = 'invitati';
+    render();
+    return;
+  }
+
+  const username = slugify(rawUsername);
+  state.busy = true; render();
+  let guest = await fetchGuestByUsername(username);
+  if(!guest){
+    if(!state.settings.allowSelfRegister){
+      state.busy = false;
+      state.loginError = 'Username non trovato. Controlla di averlo scritto come indicato dagli sposi, oppure contattali.';
+      render(); return;
+    }
+    guest = normalizeGuestObj({
+      id: username, username, name: rawUsername, rsvp:null, brunchInvite:false, brunchRsvp:null,
+      respondedAt:null, brunchRespondedAt:null, createdAt: Date.now()
+    });
+    await saveGuestRecord(guest);
+  }
+  state.busy = false;
+  state.currentUser = {type:'guest', authed:true};
+  state.guestRecord = guest;
+  state.view = 'guest';
+  state.guestTab = guest.fullInviteSentAt ? (guest.rsvp ? 'luoghi' : 'rsvp') : 'save-the-date';
+  render();
+}
+function logout(){
+  state.currentUser = null; state.guestRecord = null; state.guests = [];
+  state.view = 'login'; state.loginError = '';
+  render();
+}
+function goToLogin(){
+  // Dall'accesso diretto (non autenticato) porta al login, mantenendo lo username noto.
+  if(state.guestRecord) state.prefillGuest = state.guestRecord.username;
+  state.currentUser = null; state.guestRecord = null; state.guests = [];
+  state.view = 'login'; state.loginError = '';
+  render();
+}
+
+/* ============================= GUEST ACTIONS (operate only on state.guestRecord) ============================= */
+async function setRsvp(value){
+  state.guestRecord.rsvp = value; state.guestRecord.respondedAt = Date.now();
+  await saveGuestRecord(state.guestRecord); render();
+}
+async function setBrunchRsvp(value){
+  state.guestRecord.brunchRsvp = value; state.guestRecord.brunchRespondedAt = Date.now();
+  await saveGuestRecord(state.guestRecord); render();
+}
+function copyIban(){
+  const iban = (state.settings.gift.iban||'').replace(/\s+/g,'');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(iban).then(()=>showToast('IBAN copiato'), ()=>showToast('Copia manualmente l\'IBAN'));
+  } else showToast('Copia manualmente l\'IBAN');
+}
+async function declareGift(){
+  const noteEl = document.getElementById('gift-note');
+  state.guestRecord.giftNote = noteEl ? noteEl.value.trim() : '';
+  state.guestRecord.giftDeclaredAt = Date.now();
+  const ok = await saveGuestRecord(state.guestRecord);
+  if(!ok){ state.guestRecord.giftDeclaredAt = null; }
+  render();
+}
+async function saveRsvpDetails(){
+  const comp = document.getElementById('rsvp-companions');
+  const diet = document.getElementById('rsvp-dietary');
+  state.guestRecord.companions = comp ? (parseInt(comp.value,10)||0) : 0;
+  state.guestRecord.dietaryNotes = diet ? diet.value.trim() : '';
+  await saveGuestRecord(state.guestRecord);
+  showToast('Dettagli salvati');
+  render();
+}
+async function addSongSuggestion(){
+  const t = document.getElementById('song-title');
+  const a = document.getElementById('song-artist');
+  const title = t.value.trim();
+  const artist = a.value.trim();
+  if(!title){ showToast('Inserisci almeno il titolo'); return; }
+  if(state.guestRecord.songSuggestions.length >= 5){ showToast('Massimo 5 canzoni per invitato'); return; }
+  state.guestRecord.songSuggestions.push({ title, artist, addedAt: Date.now() });
+  t.value=''; a.value='';
+  await saveGuestRecord(state.guestRecord);
+  render();
+}
+async function removeSongSuggestion(idx){
+  state.guestRecord.songSuggestions.splice(idx, 1);
+  await saveGuestRecord(state.guestRecord);
+  render();
+}
+function togglePlaylist(v){
+  state.settings.playlistEnabled = !!v;
+  saveSettings(); render();
+}
+function daysToWedding(){
+  const d = state.settings.weddingDate;
+  if(!d) return null;
+  const target = new Date(d + 'T00:00:00');
+  if(isNaN(target.getTime())) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((target - today) / 86400000);
+}
+function countdownBanner(){
+  const days = daysToWedding();
+  if(days===null || days<0) return '';
+  const msg = days===0 ? 'Oggi è il grande giorno!' : days===1 ? 'Manca 1 giorno!' : `Mancano ${days} giorni`;
+  return `<p style="text-align:center; font-family:var(--font-display); font-style:italic; font-size:19px; color:var(--accent); margin:0 0 18px 0;">${msg}</p>`;
+}
+
+/* ============================= ADMIN: GUESTS ============================= */
+async function addGuestManual(){
+  const input = document.getElementById('new-guest-name');
+  const name = input.value.trim();
+  if(!name) return;
+  const username = slugify(name);
+  if(!username){ showToast('Nome non valido'); return; }
+  if(state.guests.some(g=>g.username===username)){ showToast('Invitato già presente'); return; }
+  const rec = normalizeGuestObj({id:username, username, name, rsvp:null, brunchInvite:false, brunchRsvp:null, respondedAt:null, brunchRespondedAt:null, ageCategory:'adulto', createdAt:Date.now()});
+  await saveGuestRecord(rec);
+  state.guests.push(rec);
+  input.value='';
+  render();
+}
+async function removeGuest(username){
+  if(!confirm('Rimuovere questo invitato dall\'elenco?')) return;
+  await deleteGuestRecord(username);
+  state.guests = state.guests.filter(g=>g.username!==username);
+  render();
+}
+async function toggleBrunch(username){
+  const g = state.guests.find(x=>x.username===username);
+  g.brunchInvite = !g.brunchInvite;
+  if(!g.brunchInvite){ g.brunchRsvp = null; g.brunchRespondedAt = null; }
+  await saveGuestRecord(g); render();
+}
+async function updateGuestCategory(username, value){
+  const g = state.guests.find(x=>x.username===username);
+  g.ageCategory = value;
+  await saveGuestRecord(g); render();
+}
+async function resetGuestRsvp(username){
+  const g = state.guests.find(x=>x.username===username);
+  g.rsvp = null; g.respondedAt = null;
+  await saveGuestRecord(g); render();
+}
+async function updateGuestContact(username, field, value){
+  const g = state.guests.find(x=>x.username===username);
+  g[field] = value.trim();
+  await saveGuestRecord(g);
+}
+async function markSent(username, kind){
+  const g = state.guests.find(x=>x.username===username);
+  const field = kind==='invite' ? 'inviteSentAt' : kind==='reminder' ? 'reminderSentAt' : kind==='invito' ? 'fullInviteSentAt' : null;
+  if(!field) return;
+  const prev = g[field];
+  g[field] = Date.now();
+  const ok = await saveGuestRecord(g);
+  if(!ok) g[field] = prev; // il salvataggio è fallito: non fingere che sia stato inviato
+  render();
+}
+function sendInviteMail(username){
+  const g = state.guests.find(x=>x.username===username);
+  if(!g.email){ showToast('Aggiungi prima un indirizzo email'); return; }
+  window.location.href = mailtoUrl(g, state.settings.templates.invite);
+  markSent(username,'invite');
+}
+function sendInviteWa(username){
+  const g = state.guests.find(x=>x.username===username);
+  if(!g.phone){ showToast('Aggiungi prima un numero di telefono'); return; }
+  window.open(waUrl(g, state.settings.templates.invite), '_blank');
+  markSent(username,'invite');
+}
+function sendReminderMail(username){
+  const g = state.guests.find(x=>x.username===username);
+  if(!g.email){ showToast('Aggiungi prima un indirizzo email'); return; }
+  window.location.href = mailtoUrl(g, state.settings.templates.reminder);
+  markSent(username,'reminder');
+}
+function sendReminderWa(username){
+  const g = state.guests.find(x=>x.username===username);
+  if(!g.phone){ showToast('Aggiungi prima un numero di telefono'); return; }
+  window.open(waUrl(g, state.settings.templates.reminder), '_blank');
+  markSent(username,'reminder');
+}
+function sendInvitoMail(username){
+  const g = state.guests.find(x=>x.username===username);
+  if(!g.email){ showToast('Aggiungi prima un indirizzo email'); return; }
+  window.location.href = mailtoUrl(g, state.settings.templates.invito);
+  markSent(username,'invito');
+}
+function sendInvitoWa(username){
+  const g = state.guests.find(x=>x.username===username);
+  if(!g.phone){ showToast('Aggiungi prima un numero di telefono'); return; }
+  window.open(waUrl(g, state.settings.templates.invito), '_blank');
+  markSent(username,'invito');
+}
+
+/* ============================= ADMIN: SETTINGS ============================= */
+function addParking(){
+  const name = document.getElementById('parking-name').value.trim();
+  const addr = document.getElementById('parking-addr').value.trim();
+  if(!name && !addr) return;
+  state.settings.ceremony.parking.push({name, address:addr});
+  document.getElementById('parking-name').value=''; document.getElementById('parking-addr').value='';
+  saveSettings(); render();
+}
+function removeParking(idx){ state.settings.ceremony.parking.splice(idx,1); saveSettings(); render(); }
+function addScheduleItem(){
+  const time = document.getElementById('sched-time').value.trim();
+  const title = document.getElementById('sched-title').value.trim();
+  if(!time || !title){ showToast('Inserisci orario e descrizione'); return; }
+  state.settings.schedule.push({time, title});
+  state.settings.schedule.sort((a,b)=>a.time.localeCompare(b.time));
+  document.getElementById('sched-time').value=''; document.getElementById('sched-title').value='';
+  saveSettings(); render();
+}
+function removeScheduleItem(idx){ state.settings.schedule.splice(idx,1); saveSettings(); render(); }
+function exportPlaylistCsv(){
+  const rows = [['Titolo','Artista','Suggerita da','Data']];
+  state.guests.forEach(g=>{
+    (g.songSuggestions||[]).forEach(s=>{
+      rows.push([s.title||'', s.artist||'', g.name, s.addedAt?fmtDate(s.addedAt):'']);
+    });
+  });
+  const escCsv = v => '"' + String(v==null?'':v).replaceAll('"','""') + '"';
+  const csv = '\ufeff' + rows.map(r=>r.map(escCsv).join(';')).join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'playlist-suggerimenti.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  showToast('Playlist esportata');
+}
+function exportGuestsCsv(){
+  const rows = [['Nome','Username','Risposta','Risposto il','Accompagnatori','Note alimentari','Brunch invitato','Brunch risposta','Categoria','Email','Telefono','Save the date inviato','Invito inviato','Bonifico confermato','Messaggio regalo']];
+  const rsvpLabel = v => v==='yes' ? 'Sì' : v==='no' ? 'No' : 'In attesa';
+  [...state.guests].sort((a,b)=>a.name.localeCompare(b.name)).forEach(g=>{
+    rows.push([
+      g.name, g.username, rsvpLabel(g.rsvp), g.respondedAt?fmtDate(g.respondedAt):'',
+      g.rsvp==='yes' ? String(g.companions||0) : '', g.dietaryNotes||'',
+      g.brunchInvite?'Sì':'No', g.brunchInvite?rsvpLabel(g.brunchRsvp):'',
+      g.ageCategory||'', g.email||'', g.phone||'',
+      g.inviteSentAt?fmtDate(g.inviteSentAt):'', g.fullInviteSentAt?fmtDate(g.fullInviteSentAt):'',
+      g.giftDeclaredAt?fmtDate(g.giftDeclaredAt):'', g.giftNote||''
+    ]);
+  });
+  const escCsv = v => '"' + String(v==null?'':v).replaceAll('"','""') + '"';
+  const csv = '\ufeff' + rows.map(r=>r.map(escCsv).join(';')).join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'invitati-matrimonio.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  showToast('Elenco esportato');
+}
+function addHotel(){
+  const name = document.getElementById('hotel-name').value.trim();
+  const addr = document.getElementById('hotel-addr').value.trim();
+  const note = document.getElementById('hotel-note').value.trim();
+  if(!name && !addr) return;
+  state.settings.hotels.push({name, address:addr, note});
+  document.getElementById('hotel-name').value=''; document.getElementById('hotel-addr').value=''; document.getElementById('hotel-note').value='';
+  saveSettings(); render();
+}
+function removeHotel(idx){ state.settings.hotels.splice(idx,1); saveSettings(); render(); }
+function saveSettingsFromForm(){
+  state.settings.coupleNames = document.getElementById('set-couple').value.trim() || 'Gli Sposi';
+  state.settings.password = document.getElementById('set-pass').value.trim() || state.settings.password;
+  state.settings.adminUsername = document.getElementById('set-admin').value.trim() || state.settings.adminUsername;
+  state.settings.allowSelfRegister = document.getElementById('set-selfreg').checked;
+  state.settings.welcomeTitle = document.getElementById('set-title').value.trim();
+  state.settings.weddingDateLabel = document.getElementById('set-date').value.trim();
+  const wd = document.getElementById('set-wdate');
+  if(wd) state.settings.weddingDate = wd.value;
+  state.settings.welcomeMessage = document.getElementById('set-msg').value.trim();
+  state.settings.ceremony.name = document.getElementById('cer-name').value.trim();
+  state.settings.ceremony.address = document.getElementById('cer-addr').value.trim();
+  state.settings.reception.name = document.getElementById('rec-name').value.trim();
+  state.settings.reception.address = document.getElementById('rec-addr').value.trim();
+  state.settings.reception.logoUrl = document.getElementById('rec-logo').value.trim();
+  const gIban = document.getElementById('gift-iban');
+  if(gIban){
+    state.settings.gift.iban = gIban.value.trim();
+    state.settings.gift.holder = document.getElementById('gift-holder').value.trim();
+    state.settings.gift.causale = document.getElementById('gift-causale').value.trim();
+  }
+  saveSettings(); render();
+}
+function saveThemeFromForm(){
+  state.settings.theme.bg = document.getElementById('th-bg').value;
+  state.settings.theme.panel = document.getElementById('th-panel').value;
+  state.settings.theme.ink = document.getElementById('th-ink').value;
+  state.settings.theme.accent = document.getElementById('th-accent').value;
+  state.settings.theme.accent2 = document.getElementById('th-accent2').value;
+  state.settings.theme.fontPair = document.getElementById('th-font').value;
+  applyTheme(); saveSettings(); render();
+}
+function saveTextsFromForm(){
+  const keys = Object.keys(defaultSettings().texts);
+  keys.forEach(k=>{
+    const el = document.getElementById('txt-'+k);
+    if(el) state.settings.texts[k] = el.value;
+  });
+  saveSettings(); render();
+}
+function saveTemplatesFromForm(){
+  state.settings.templates.invite.subject = document.getElementById('tpl-invite-subject').value;
+  state.settings.templates.invite.body = document.getElementById('tpl-invite-body').value;
+  state.settings.templates.reminder.subject = document.getElementById('tpl-reminder-subject').value;
+  state.settings.templates.reminder.body = document.getElementById('tpl-reminder-body').value;
+  state.settings.templates.invito.subject = document.getElementById('tpl-invito-subject').value;
+  state.settings.templates.invito.body = document.getElementById('tpl-invito-body').value;
+  saveSettings(); render();
+}
+function savePublicBaseUrl(){
+  const val = document.getElementById('public-base-url').value.trim();
+  state.settings.publicBaseUrl = val.replace(/\/$/, '');
+  saveSettings(); render();
+}
+
+/* ============================= ADMIN: SAVE THE DATE (foto + testo) =============================
+   La foto viene ridimensionata e compressa nel browser prima del salvataggio,
+   così da restare entro i limiti del Google Sheet (celle da 50.000 caratteri:
+   il backend la spezza comunque su più celle, ma teniamo il file leggero
+   anche per non rallentare il caricamento della pagina degli invitati). */
+function stdPhotoUpload(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ showToast('Il file non è un\'immagine'); return; }
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const img = new Image();
+    img.onload = function(){
+      const MAX_SIDE = 1100;
+      let w = img.width, h = img.height;
+      if(w > MAX_SIDE || h > MAX_SIDE){
+        const ratio = Math.min(MAX_SIDE / w, MAX_SIDE / h);
+        w = Math.round(w * ratio); h = Math.round(h * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      let quality = 0.8;
+      let dataUrl = canvas.toDataURL('image/jpeg', quality);
+      while(dataUrl.length > 240000 && quality > 0.35){
+        quality -= 0.1;
+        dataUrl = canvas.toDataURL('image/jpeg', quality);
+      }
+      if(dataUrl.length > 240000){ showToast('Foto troppo grande anche dopo la compressione: provane una più semplice'); return; }
+      state.settings.saveTheDate.photo = dataUrl;
+      saveSettings(); render();
+    };
+    img.onerror = function(){ showToast('Impossibile leggere l\'immagine'); };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function stdRemovePhoto(){
+  state.settings.saveTheDate.photo = '';
+  saveSettings(); render();
+}
+function stdSaveText(){
+  state.settings.saveTheDate.text = document.getElementById('std-text').value;
+  saveSettings(); render();
+}
+
+/* ============================= RENDER: LOGIN ============================= */
+function renderLogin(){
+  return `
+  <div class="center-wrap">
+    <div style="max-width:400px; width:100%;">
+      <div style="text-align:center; margin-bottom:22px;">
+        ${state.settings.theme.heroImage ? `<img src="${state.settings.theme.heroImage}" style="width:100%; max-height:220px; object-fit:cover; border-radius:14px; margin-bottom:18px;" alt="">` : ''}
+        <p class="eyebrow" style="text-align:center;">${esc(state.settings.weddingDateLabel || 'Save the date')}</p>
+        <h1>${esc(state.settings.welcomeTitle)}</h1>
+        <div class="thread" style="max-width:180px; margin:0 auto 18px auto;"></div>
+        <p style="font-size:18px;">${esc(state.settings.coupleNames)}</p>
+      </div>
+      <div class="card">
+        ${state.prefillGuest ? `<p class="hint" style="margin-top:0; margin-bottom:16px; padding:10px 12px; background:rgba(179,102,122,0.08); border-radius:9px; color:var(--ink);">È arrivato il nostro invito! Il tuo nome utente è già inserito: aggiungi la password che ti abbiamo comunicato per confermare la presenza e vedere tutti i dettagli.</p>` : ''}
+        <div class="field">
+          <label>Nome utente</label>
+          <input type="text" id="login-user" placeholder="Es. mariarossi" autocomplete="off" value="${esc(state.prefillGuest)}">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <div style="display:flex; gap:8px;">
+            <input type="password" id="login-pass" placeholder="Password" autocomplete="off" style="flex:1;">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="const p=document.getElementById('login-pass'); p.type = p.type==='password' ? 'text' : 'password';">Mostra</button>
+          </div>
+        </div>
+        ${state.loginError ? `<div class="error-msg">${esc(state.loginError)}</div>` : ''}
+        <button class="btn btn-primary btn-block" onclick="handleLogin()" ${state.busy?'disabled':''}>${state.busy?'Accesso in corso…':'Entra'}</button>
+        <p class="hint" style="text-align:center; margin-top:14px;">Username e password vi sono stati comunicati dagli sposi.</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============================= RENDER: GUEST APP ============================= */
+function renderGuestApp(){
+  const g = state.guestRecord;
+  const s = state.settings;
+  const t = s.texts;
+  const authed = state.currentUser && state.currentUser.authed;
+  const tabs = [{k:'save-the-date', label:'📅 '+t.stdEyebrow}];
+  if(authed && g.fullInviteSentAt){
+    tabs.push({k:'rsvp', label:'✓ '+t.rsvpEyebrow});
+    if(g.brunchInvite) tabs.push({k:'brunch', label:'🥐 Brunch'});
+    tabs.push({k:'luoghi', label:'📍 Dove & quando'});
+    if(s.gift && s.gift.iban) tabs.push({k:'regalo', label:'🎁 '+t.giftEyebrow});
+    if(s.playlistEnabled) tabs.push({k:'playlist', label:'🎵 '+t.playlistEyebrow});
+  }
+
+  // Se la tab richiesta non è (più) disponibile per questo ospite, si torna al save the date
+  if(!tabs.some(tab=>tab.k===state.guestTab)) state.guestTab = 'save-the-date';
+
+  let body = '';
+  if(state.guestTab === 'save-the-date'){
+    let footer;
+    if(!g.fullInviteSentAt){
+      footer = `<p class="hint" style="margin-top:14px;">${esc(t.stdWaiting)}</p>`;
+    } else if(!authed){
+      footer = `
+        <p class="hint" style="margin-top:16px;">L'invito è arrivato! Accedi con la password che vi abbiamo comunicato per confermare la presenza e vedere tutti i dettagli.</p>
+        <button class="btn btn-primary" style="margin-top:8px;" onclick="goToLogin()">Accedi per l'invito</button>`;
+    } else {
+      footer = `<p class="hint" style="margin-top:14px;">${esc(t.stdArrivedHint)}</p>`;
+    }
+    body = `
+      <div class="card">
+        <p class="eyebrow">${esc(t.stdEyebrow)}</p>
+        ${s.saveTheDate && s.saveTheDate.photo ? `<img src="${s.saveTheDate.photo}" alt="Save the date" style="width:100%; max-height:45vh; object-fit:cover; object-position:center 70%; border-radius:12px; margin-bottom:14px; display:block;">` : ''}
+        <h2>${esc(guestText(t.stdGreeting, g))}</h2>
+        ${s.saveTheDate && s.saveTheDate.text ? `<p style="white-space:pre-line;">${esc(s.saveTheDate.text)}</p>` : ''}
+        ${footer}
+      </div>`;
+  } else if(state.guestTab === 'rsvp'){
+    body = `
+      <div class="card">
+        <p class="eyebrow">${esc(t.rsvpEyebrow)}</p>
+        <h2>${esc(guestText(t.rsvpTitle, g))}</h2>
+        <p>${esc(t.rsvpText)}</p>
+        <div class="rsvp-choice">
+          <button class="rsvp-btn yes ${g.rsvp==='yes'?'selected':''}" onclick="setRsvp('yes')">${esc(t.rsvpYes)}</button>
+          <button class="rsvp-btn no ${g.rsvp==='no'?'selected':''}" onclick="setRsvp('no')">${esc(t.rsvpNo)}</button>
+        </div>
+        ${g.rsvp ? `<p class="hint">Risposta registrata il ${fmtDate(g.respondedAt)}. Puoi modificarla in qualsiasi momento.</p>` : ''}
+        ${g.rsvp==='yes' ? `
+          <div style="border-top:1px solid var(--line); margin-top:18px; padding-top:16px;">
+            <div class="field">
+              <label>Oltre a te, quante persone porti? (accompagnatori)</label>
+              <select id="rsvp-companions">${[0,1,2,3,4,5,6,7,8,9].map(n=>`<option value="${n}" ${g.companions===n?'selected':''}>${n===0?'Nessuno, vengo da solo/a':'+'+n}</option>`).join('')}</select>
+            </div>
+            <div class="field">
+              <label>Allergie o intolleranze alimentari (tue e degli accompagnatori)</label>
+              <textarea id="rsvp-dietary" rows="2" placeholder="Es. 1 celiaco, 1 vegetariano, allergia alle noci…">${esc(g.dietaryNotes)}</textarea>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="saveRsvpDetails()">Salva dettagli</button>
+          </div>` : ''}
+      </div>`;
+  } else if(state.guestTab === 'brunch' && g.brunchInvite){
+    body = `
+      <div class="card">
+        <p class="eyebrow">${esc(t.brunchEyebrow)}</p>
+        <h2>${esc(t.brunchTitle)}</h2>
+        <p>${esc(t.brunchText)}</p>
+        <div class="rsvp-choice">
+          <button class="rsvp-btn yes ${g.brunchRsvp==='yes'?'selected':''}" onclick="setBrunchRsvp('yes')">${esc(t.brunchYes)}</button>
+          <button class="rsvp-btn no ${g.brunchRsvp==='no'?'selected':''}" onclick="setBrunchRsvp('no')">${esc(t.brunchNo)}</button>
+        </div>
+        ${g.brunchRsvp ? `<p class="hint">Risposta registrata il ${fmtDate(g.brunchRespondedAt)}.</p>` : ''}
+      </div>`;
+  } else if(state.guestTab === 'regalo' && s.gift && s.gift.iban){
+    const gi = s.gift;
+    body = `
+      <div class="card">
+        <p class="eyebrow">${esc(t.giftEyebrow)}</p>
+        <h2>${esc(t.giftTitle)}</h2>
+        <p>${esc(t.giftText)}</p>
+        <div style="background:rgba(175,138,63,0.08); border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin:16px 0;">
+          ${gi.holder ? `<p style="margin:0 0 6px 0;"><strong>Intestato a:</strong> ${esc(gi.holder)}</p>` : ''}
+          <p style="margin:0 0 6px 0; word-break:break-all;"><strong>IBAN:</strong> <span style="font-family:monospace; font-size:15px;">${esc(gi.iban)}</span></p>
+          ${gi.causale ? `<p style="margin:0;"><strong>Causale suggerita:</strong> ${esc(gi.causale)}</p>` : ''}
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="copyIban()">📋 Copia IBAN</button>
+        <div style="margin-top:22px; border-top:1px solid var(--line); padding-top:18px;">
+          ${g.giftDeclaredAt
+            ? `<p style="color:var(--green); font-weight:600;">${esc(t.giftThanks)}</p>
+               <p class="hint">Confermato il ${fmtDate(g.giftDeclaredAt)}${g.giftNote ? ' — «'+esc(g.giftNote)+'»' : ''}</p>`
+            : `<p class="hint">Dopo aver fatto il bonifico, facci sapere qui (così possiamo ringraziarti!):</p>
+               <div class="field" style="margin-top:10px;"><textarea id="gift-note" rows="2" placeholder="Un messaggio per gli sposi (facoltativo)"></textarea></div>
+               <button class="btn btn-primary" onclick="declareGift()">${esc(t.giftButton)}</button>`
+          }
+        </div>
+      </div>`;
+  } else if(state.guestTab === 'playlist' && s.playlistEnabled){
+    const mine = state.guestRecord.songSuggestions || [];
+    body = `
+      <div class="card">
+        <p class="eyebrow">${esc(t.playlistEyebrow)}</p>
+        <h2>${esc(t.playlistTitle)}</h2>
+        <p>${esc(t.playlistText)}</p>
+        <p class="hint">Puoi suggerire fino a 5 canzoni. Le decisioni finali le prendono gli sposi (e il DJ!).</p>
+
+        ${mine.length ? `
+          <h3 style="margin-top:18px;">Le tue proposte</h3>
+          ${mine.map((s,i)=>`
+            <div class="list-item-row">
+              <div class="grow"><strong>${esc(s.title)}</strong>${s.artist?` <span class="hint">— ${esc(s.artist)}</span>`:''}</div>
+              <button class="btn btn-outline-red btn-sm" onclick="removeSongSuggestion(${i})">Rimuovi</button>
+            </div>`).join('')}
+        ` : ''}
+
+        ${mine.length < 5 ? `
+          <div style="border-top:1px solid var(--line); margin-top:18px; padding-top:16px;">
+            <div class="field"><label>Titolo canzone</label><input type="text" id="song-title" placeholder="Es. Wonderwall"></div>
+            <div class="field"><label>Artista (facoltativo)</label><input type="text" id="song-artist" placeholder="Es. Oasis" onkeydown="if(event.key==='Enter')addSongSuggestion();"></div>
+            <button class="btn btn-primary" onclick="addSongSuggestion()">Aggiungi alla playlist</button>
+          </div>
+        ` : `<p class="hint" style="margin-top:14px;">Hai raggiunto il massimo di 5 proposte. Rimuovine una se vuoi sostituirla.</p>`}
+      </div>`;
+  } else {
+    body = `
+      ${s.schedule && s.schedule.length ? `
+      <div class="info-block card" style="margin-bottom:18px;">
+        <p class="eyebrow">Programma della giornata</p>
+        ${s.schedule.map(it=>`
+          <div style="display:flex; gap:14px; padding:7px 0; border-bottom:1px solid #ece5d2;">
+            <strong style="min-width:56px; color:var(--accent2);">${esc(it.time)}</strong>
+            <span style="color:var(--ink-soft);">${esc(it.title)}</span>
+          </div>`).join('')}
+      </div>` : ''}
+      <div class="info-block card" style="margin-bottom:18px;">
+        <p class="eyebrow">Cerimonia</p>
+        <h3>${esc(s.ceremony.name || 'Da definire')}</h3>
+        <p class="addr">${esc(s.ceremony.address || 'Indirizzo non ancora disponibile')}</p>
+        ${s.ceremony.address ? mapLinkButton(s.ceremony.address) : ''}
+        ${s.ceremony.parking && s.ceremony.parking.length ? `
+          <h3 style="margin-top:16px;">Parcheggi consigliati</h3>
+          <div>${s.ceremony.parking.map(p=>`
+            <div style="margin-bottom:10px;">
+              <p style="margin:0 0 4px 0; font-size:13.5px; color:var(--ink-soft);"><strong style="color:var(--ink);">${esc(p.name)}</strong>${p.address?' — '+esc(p.address):''}</p>
+              ${p.address ? mapLinkButton(p.address) : ''}
+            </div>`).join('')}</div>
+        ` : ''}
+      </div>
+      <div class="info-block card" style="margin-bottom:18px;">
+        <p class="eyebrow">Ricevimento</p>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+          <h3 style="margin:0;">${esc(s.reception.name || 'Da definire')}</h3>
+          ${s.reception.logoUrl ? `<img src="${s.reception.logoUrl}" alt="" style="height:28px; width:auto; object-fit:contain;">` : ''}
+        </div>
+        <p class="addr">${esc(s.reception.address || 'Indirizzo non ancora disponibile')}</p>
+        ${s.reception.address ? mapLinkButton(s.reception.address) : ''}
+      </div>
+      <div class="info-block card">
+        <p class="eyebrow">Dove dormire</p>
+        <h3>Strutture consigliate</h3>
+        ${s.hotels.length===0 ? `<p>Le strutture verranno comunicate a breve.</p>` : s.hotels.map(h=>`
+          <div style="margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--line);">
+            <h3 style="margin-bottom:2px;">${esc(h.name)}</h3>
+            <p class="addr">${esc(h.address)}</p>
+            ${h.note ? `<p class="hint" style="margin-bottom:8px;">${esc(h.note)}</p>` : ''}
+            ${h.address ? mapLinkButton(h.address) : ''}
+          </div>
+        `).join('')}
+      </div>`;
+  }
+
+  return `
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">${esc(s.coupleNames)}</div>
+        <div class="nav-tabs">
+          ${tabs.map(t=>`<button class="nav-tab ${state.guestTab===t.k?'active':''}" onclick="state.guestTab='${t.k}'; render();">${t.label}</button>`).join('')}
+        </div>
+        <div class="topbar-actions">
+          ${authed
+            ? `<button class="btn btn-ghost btn-sm" onclick="logout()">Esci</button>`
+            : `<button class="btn btn-ghost btn-sm" onclick="goToLogin()">Accedi</button>`}
+        </div>
+      </div>
+    </div>
+    <main><div class="wrap">${countdownBanner()}${body}</div></main>
+    <div class="footer-note">${esc(s.welcomeMessage)}</div>
+  `;
+}
+
+/* ============================= RENDER: ADMIN APP ============================= */
+function renderAdminApp(){
+  const s = state.settings;
+  const total = state.guests.length;
+  const yes = state.guests.filter(g=>g.rsvp==='yes').length;
+  const no = state.guests.filter(g=>g.rsvp==='no').length;
+  const pending = total - yes - no;
+
+  let body = '';
+  if(state.adminTab === 'invitati') body = renderAdminGuests(total, yes, no, pending);
+  else if(state.adminTab === 'savethedate') body = renderAdminSaveTheDate();
+  else if(state.adminTab === 'inviti') body = renderAdminInviti();
+  else if(state.adminTab === 'luoghi') body = renderAdminLuoghi();
+  else body = renderAdminTema();
+
+  return `
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">${esc(s.coupleNames)} <span class="chip" style="margin-left:8px;">sposi</span></div>
+        <div class="nav-tabs">
+          <button class="nav-tab ${state.adminTab==='invitati'?'active':''}" onclick="state.adminTab='invitati'; render();">Invitati</button>
+          <button class="nav-tab ${state.adminTab==='savethedate'?'active':''}" onclick="state.adminTab='savethedate'; render();">Save the date</button>
+          <button class="nav-tab ${state.adminTab==='inviti'?'active':''}" onclick="state.adminTab='inviti'; render();">Inviti</button>
+          <button class="nav-tab ${state.adminTab==='luoghi'?'active':''}" onclick="state.adminTab='luoghi'; render();">Luoghi & info</button>
+          <button class="nav-tab ${state.adminTab==='tema'?'active':''}" onclick="state.adminTab='tema'; render();">Personalizza</button>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm" onclick="logout()">Esci</button>
+        </div>
+      </div>
+    </div>
+    <main><div class="wrap">${body}</div></main>
+  `;
+}
+
+function renderAdminGuests(total, yes, no, pending){
+  const filter = state.guestFilter || '';
+  const filtered = state.guests
+    .filter(g => g.name.toLowerCase().includes(filter.toLowerCase()))
+    .sort((a,b)=>a.name.localeCompare(b.name));
+  const gifts = state.guests.filter(g=>g.giftDeclaredAt).sort((a,b)=>(b.giftDeclaredAt||0)-(a.giftDeclaredAt||0));
+  const companionsSum = state.guests.filter(g=>g.rsvp==='yes').reduce((acc,g)=>acc+(g.companions||0),0);
+  const totalPeople = yes + companionsSum;
+  const dietary = state.guests.filter(g=>g.rsvp==='yes' && g.dietaryNotes);
+  const dietaryCard = dietary.length ? `
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Note alimentari per il catering (${dietary.length})</p>
+      ${dietary.map(g=>`
+        <div class="list-item-row">
+          <div class="grow"><strong>${esc(g.name)}</strong>${g.companions?` <span class="hint">(+${g.companions})</span>`:''}<br><span class="hint">${esc(g.dietaryNotes)}</span></div>
+        </div>`).join('')}
+    </div>` : '';
+  const allSongs = [];
+  state.guests.forEach(g=>{ (g.songSuggestions||[]).forEach(s=>allSongs.push({...s, by:g.name})); });
+  const playlistCard = (state.settings.playlistEnabled && allSongs.length) ? `
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Playlist — proposte dagli invitati (${allSongs.length})</p>
+      <p class="hint" style="margin-top:-4px;">Elenco di tutte le canzoni suggerite. Utile da esportare per il DJ.</p>
+      ${allSongs.sort((a,b)=>(b.addedAt||0)-(a.addedAt||0)).map(s=>`
+        <div class="list-item-row">
+          <div class="grow"><strong>${esc(s.title)}</strong>${s.artist?` — ${esc(s.artist)}`:''}<br><span class="hint">Suggerita da ${esc(s.by)}</span></div>
+        </div>`).join('')}
+      <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="exportPlaylistCsv()">⬇ Esporta playlist</button>
+    </div>` : '';
+  const giftCard = (state.settings.gift && state.settings.gift.iban) ? `
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Regali — bonifici confermati dagli invitati (${gifts.length})</p>
+      <p class="hint" style="margin-top:-4px;">Sono le conferme lasciate dagli invitati nella scheda "Regalo": incrociatele con l'estratto conto. Visibile solo a voi.</p>
+      ${gifts.length===0 ? `<p class="hint">Nessuna conferma per ora.</p>` : gifts.map(g=>`
+        <div class="list-item-row">
+          <div class="grow">
+            <strong>${esc(g.name)}</strong> <span class="hint">— ${fmtDate(g.giftDeclaredAt)}</span>
+            ${g.giftNote ? `<br><span class="hint">«${esc(g.giftNote)}»</span>` : ''}
+          </div>
+        </div>`).join('')}
+    </div>` : '';
+
+  return `
+    ${giftCard}
+    ${playlistCard}
+    <div class="stat-row">
+      <div class="stat"><div class="num">${total}</div><div class="lbl">Invitati totali</div></div>
+      <div class="stat"><div class="num" style="color:var(--green)">${yes}</div><div class="lbl">Confermati</div></div>
+      <div class="stat"><div class="num" style="color:var(--green)">${totalPeople}</div><div class="lbl">Persone (con +${companionsSum})</div></div>
+      <div class="stat"><div class="num" style="color:var(--red)">${no}</div><div class="lbl">Non partecipano</div></div>
+      <div class="stat"><div class="num" style="color:var(--orange)">${pending}</div><div class="lbl">In attesa</div></div>
+    </div>
+
+    ${dietaryCard}
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Aggiungi invitato</p>
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="new-guest-name" placeholder="Nome e cognome" style="flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:9px;" onkeydown="if(event.key==='Enter')addGuestManual();">
+        <button class="btn btn-accent" onclick="addGuestManual()">Aggiungi</button>
+      </div>
+      <p class="hint">L'username per l'accesso viene generato automaticamente dal nome (nomecognome, senza spazi). La password è unica per tutti ed è quella impostata in "Luoghi & info".</p>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <p class="eyebrow" style="margin:0;">Elenco invitati</p>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="text" placeholder="Cerca per nome…" value="${esc(filter)}" oninput="state.guestFilter=this.value; render();">
+          <button class="btn btn-ghost btn-sm" onclick="exportGuestsCsv()">⬇ Esporta Excel</button>
+        </div>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Save the date</th><th>Nome / username</th><th>Risposto il</th><th>Accompagnatori</th><th>Brunch</th><th>Categoria</th><th>Stato brunch</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${filtered.length===0 ? `<tr><td colspan="8" style="text-align:center; color:var(--ink-soft); padding:20px;">Nessun invitato trovato.</td></tr>` : filtered.map(g=>{
+            const st = statusOf(g,'rsvp');
+            const bst = g.brunchInvite ? statusOf(g,'brunch') : null;
+            return `<tr>
+              <td><span class="seal ${st.cls}" title="${st.label}"></span></td>
+              <td><strong>${esc(g.name)}</strong><br><span class="hint">utente: ${esc(g.username)}</span></td>
+              <td>${fmtDate(g.respondedAt)}</td>
+              <td style="text-align:center;">${g.rsvp==='yes' ? (g.companions>0 ? `<strong style="color:var(--accent);">+${g.companions}</strong>` : `<span class="hint">Solo</span>`) : `<span class="hint">—</span>`}</td>
+              <td>
+                <label style="display:flex; align-items:center; gap:6px; font-size:12.5px;">
+                  <input type="checkbox" ${g.brunchInvite?'checked':''} onchange="toggleBrunch('${g.username}')"> invitato
+                </label>
+              </td>
+              <td>
+                <select onchange="updateGuestCategory('${g.username}', this.value)" style="padding:6px 8px; border:1px solid var(--line); border-radius:8px; font-size:12.5px;">
+                  <option value="adulto" ${g.ageCategory==='adulto'?'selected':''}>Adulto</option>
+                  <option value="bambino" ${g.ageCategory==='bambino'?'selected':''}>Bambino</option>
+                  <option value="infante" ${g.ageCategory==='infante'?'selected':''}>Infante</option>
+                </select>
+              </td>
+              <td>${bst ? `<span class="status-row"><span class="seal ${bst.cls}"></span><span class="status-label">${bst.label}</span></span>` : '<span class="hint">—</span>'}</td>
+              <td style="text-align:right; white-space:nowrap;">
+                ${g.rsvp ? `<button class="btn btn-ghost btn-sm" onclick="resetGuestRsvp('${g.username}')">Azzera</button>` : ''}
+                <button class="btn btn-outline-red btn-sm" onclick="removeGuest('${g.username}')">Rimuovi</button>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderAdminSaveTheDate(){
+  const std = state.settings.saveTheDate;
+
+  return `
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Save the date</p>
+      <p>Qui componi il save the date che gli invitati vedono quando aprono il loro link (foto + testo), e qui sotto trovi lo strumento per inviarlo a tutti in una volta con una lista broadcast WhatsApp. L'invito completo con i dettagli logistici resta un passo separato, nella scheda "Inviti".</p>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Foto</p>
+      ${std.photo
+        ? `<img src="${std.photo}" alt="Save the date" style="max-width:100%; max-height:420px; border-radius:12px; display:block; margin-bottom:12px;">
+           <div style="display:flex; gap:10px;">
+             <label class="btn btn-ghost btn-sm" style="cursor:pointer;">Sostituisci foto<input type="file" accept="image/*" style="display:none;" onchange="stdPhotoUpload(this)"></label>
+             <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="stdRemovePhoto()">Rimuovi</button>
+           </div>`
+        : `<p class="hint" style="margin-bottom:12px;">Nessuna foto caricata. L'immagine viene ridimensionata e compressa automaticamente.</p>
+           <label class="btn btn-accent" style="cursor:pointer;">Carica una foto<input type="file" accept="image/*" style="display:none;" onchange="stdPhotoUpload(this)"></label>`
+      }
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Testo sotto la foto</p>
+      <div class="field"><textarea id="std-text" rows="4" placeholder="Es. Ci sposiamo! Segnatevi la data: 12 settembre 2026. Vi aspettiamo!">${esc(std.text)}</textarea></div>
+      <button class="btn btn-primary" onclick="stdSaveText()">Salva testo</button>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">Invio con lista broadcast WhatsApp</p>
+      <p>Il modo più veloce per mandare il save the date a tutti in una volta: la <strong>lista broadcast</strong> di WhatsApp (gratis, i destinatari ricevono un messaggio privato, non un gruppo). Copia il messaggio qui sotto, crea la lista broadcast su WhatsApp e incollalo. Ognuno aprirà il link e inserirà il proprio nome utente per accedere.</p>
+      <p class="hint">Nota: WhatsApp consegna la lista broadcast solo a chi ha il tuo numero salvato in rubrica (per gli invitati di un matrimonio è quasi sempre così). A chi non ti ha in rubrica, manda il messaggio normalmente.</p>
+
+      <div class="field" style="margin-top:16px;">
+        <label>Messaggio pronto (link generico del sito + istruzioni)</label>
+        <textarea id="broadcast-text" rows="9" readonly style="background:#faf7ef;">${esc(broadcastMessage())}</textarea>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-accent" onclick="copyBroadcast()">📋 Copia messaggio</button>
+        <a class="btn btn-wa" href="https://wa.me/?text=${encodeURIComponent(broadcastMessage())}" target="_blank" rel="noopener">Apri WhatsApp con il messaggio</a>
+      </div>
+
+      <h3 style="margin-top:22px;">Come si crea una lista broadcast</h3>
+      <ol style="color:var(--ink-soft); font-size:13.5px; line-height:1.7; padding-left:20px; margin:6px 0 0;">
+        <li>Apri WhatsApp sul telefono → menu (⋮ in alto a destra su Android, o "Nuova chat" su iPhone) → <strong>Nuova lista broadcast</strong>.</li>
+        <li>Seleziona tutti gli invitati che vuoi avvisare, poi conferma.</li>
+        <li>Incolla il messaggio copiato qui sopra e invia: lo ricevono tutti come messaggio privato.</li>
+      </ol>
+      ${!state.settings.publicBaseUrl ? `<p class="hint" style="color:var(--red); margin-top:12px;">Attenzione: non hai ancora impostato l'indirizzo pubblico del sito (scheda Inviti). Finché non lo fai, il link nel messaggio non funzionerà.</p>` : ''}
+    </div>
+  `;
+}
+
+function broadcastMessage(){
+  const s = state.settings;
+  const link = universalSiteLink();
+  return `Ciao! ${s.coupleNames} si sposano 💍\n\nSegnatevi la data! Trovate il nostro save the date qui:\n${link}\n\nPer entrare, il vostro nome utente è nome+cognome tutto attaccato e minuscolo (es. Mario Rossi → mariorossi). La password ve l'abbiamo comunicata a voce.\n\nA presto! ${s.coupleNames}`;
+}
+function copyBroadcast(){
+  const txt = broadcastMessage();
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>showToast('Messaggio copiato'), ()=>fallbackCopy(txt));
+  } else fallbackCopy(txt);
+}
+function fallbackCopy(txt){
+  const ta = document.getElementById('broadcast-text');
+  if(ta){ ta.removeAttribute('readonly'); ta.select(); try{ document.execCommand('copy'); showToast('Messaggio copiato'); }catch(e){ showToast('Copia manualmente il testo'); } ta.setAttribute('readonly','readonly'); }
+}
+
+function renderAdminInviti(){
+  const s = state.settings;
+  const sorted = [...state.guests].sort((a,b)=>a.name.localeCompare(b.name));
+  const pending = sorted.filter(g=>g.fullInviteSentAt && !g.rsvp);
+  const readyForInvito = sorted.filter(g=>g.inviteSentAt && !g.fullInviteSentAt);
+  const sub = state.invitiSubTab || 'da-invitare';
+
+  function contactRow(g, kind){
+    const sentAt = kind==='invite' ? g.inviteSentAt : kind==='reminder' ? g.reminderSentAt : g.fullInviteSentAt;
+    const mailFn = kind==='invite' ? 'sendInviteMail' : kind==='reminder' ? 'sendReminderMail' : 'sendInvitoMail';
+    const waFn = kind==='invite' ? 'sendInviteWa' : kind==='reminder' ? 'sendReminderWa' : 'sendInvitoWa';
+    return `
+      <div class="invite-row">
+        <div class="invite-row-top">
+          <div><strong>${esc(g.name)}</strong><div class="mono-hint">utente: ${esc(g.username)}</div></div>
+          <span class="chip ${g.rsvp?'' : 'wait'}">${g.rsvp==='yes'?'Confermato':g.rsvp==='no'?'Non partecipa':'In attesa'}</span>
+        </div>
+        <div class="invite-contacts">
+          <input type="email" placeholder="Email" value="${esc(g.email)}" onchange="updateGuestContact('${g.username}','email',this.value)">
+          <input type="text" placeholder="Telefono (con prefisso, es. 39...)" value="${esc(g.phone)}" onchange="updateGuestContact('${g.username}','phone',this.value)">
+        </div>
+        <div class="invite-actions">
+          <button class="btn btn-mail btn-sm" ${g.email?'':'disabled'} onclick="${mailFn}('${g.username}')">✉ Email</button>
+          <button class="btn btn-wa btn-sm" ${g.phone?'':'disabled'} onclick="${waFn}('${g.username}')">WhatsApp</button>
+          ${kind==='invito' ? `<button class="btn btn-ghost btn-sm" onclick="openQrModal('${g.username}')">▦ QR personale</button>` : ''}
+        </div>
+        ${sentAt ? `<div class="sent-note">Preparato il ${fmtDate(sentAt)} alle ${fmtTime(sentAt)} — conferma solo l'apertura del messaggio, non l'invio effettivo.</div>` : ''}
+      </div>`;
+  }
+
+  return `
+    <div class="card" style="margin-bottom:20px; ${s.publicBaseUrl ? '' : 'border-color:var(--red);'}">
+      <p class="eyebrow">Indirizzo pubblico del sito</p>
+      ${s.publicBaseUrl ? `<p class="hint" style="margin-bottom:10px;">Link in uso: <strong>${esc(s.publicBaseUrl)}</strong></p>` : `<p style="color:var(--red); font-size:13.5px; margin-bottom:10px;">Non ancora impostato: i link nei messaggi risulteranno rotti finché non lo inserisci qui sotto.</p>`}
+      <p class="hint" style="margin-top:-6px;">Pubblica prima il sito con il tasto "Pubblica" in alto, copia il link pubblico che ottieni e incollalo qui sotto. Da qui in poi tutti i link personali generati per gli invitati useranno questo indirizzo.</p>
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <input type="text" id="public-base-url" placeholder="https://claude.site/artifacts/..." value="${esc(s.publicBaseUrl)}" style="flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:9px;">
+        <button class="btn btn-accent" onclick="savePublicBaseUrl()">Salva</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">QR code per la stampa</p>
+      <p>Per gli inviti cartacei conviene un <strong>QR unico, identico su tutti gli inviti</strong>, invece di uno diverso per ogni invitato — così mandi in stampa un solo file. Il QR porta alla pagina di accesso normale; sul cartoncino riporti anche lo username di quella persona come testo (elenco pronto qui sotto), che l'invitato digiterà insieme alla password dopo aver inquadrato il codice.</p>
+      <button class="btn btn-accent" style="margin-top:6px;" ${s.publicBaseUrl ? '' : 'disabled title="Imposta prima l\'indirizzo pubblico del sito qui sopra"'} onclick="openUniversalQrModal()">▦ Genera QR universale</button>
+
+      <h3 style="margin-top:22px;">Elenco username da riportare sugli inviti</h3>
+      ${state.guests.length===0 ? `<p class="hint">Nessun invitato in elenco ancora.</p>` : `
+        <div style="border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-top:8px;">
+          ${[...state.guests].sort((a,b)=>a.name.localeCompare(b.name)).map((g,i)=>`
+            <div style="display:flex; justify-content:space-between; gap:10px; padding:8px 12px; ${i%2? 'background:rgba(0,0,0,.02);':''}">
+              <span>${esc(g.name)}</span>
+              <span class="mono-hint">${esc(g.username)}</span>
+            </div>`).join('')}
+        </div>`
+      }
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Come funziona</p>
+      <p>Il processo è in due tempi: prima mandi il <strong>save the date</strong> (solo l'annuncio: foto e testo, nessuna risposta richiesta). Solo agli invitati a cui l'hai già mandato compare la seconda scheda, per mandare l'<strong>invito</strong> vero e proprio — che sblocca per loro la conferma di presenza, l'eventuale brunch e i dettagli su cerimonia, ricevimento e alloggi. I solleciti riguardano solo chi ha ricevuto l'invito e non ha ancora risposto. Per ogni invitato puoi aprire un'email o una chat WhatsApp già pronte, con un link personale che pre-compila il suo username sulla pagina di accesso. Per la stampa cartacea usa invece il QR universale qui sopra; il pulsante "QR personale" accanto a ogni invitato genera invece un QR con lo username già precompilato, utile solo per casi singoli (es. una consegna a mano a una persona sola) — non per una stampa in serie. Il messaggio va comunque confermato e inviato da te (o l'invito consegnato a mano): il sito non spedisce nulla in autonomia.</p>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Testi dei messaggi</p>
+      <p class="hint" style="margin-top:-6px;">Segnaposto disponibili: {nome}, {username}, {sposi}, {link}, {data}.</p>
+      <h3 style="margin-top:14px;">Save the date</h3>
+      <div class="field"><label>Oggetto</label><input type="text" id="tpl-invite-subject" value="${esc(s.templates.invite.subject)}"></div>
+      <div class="field"><label>Testo</label><textarea id="tpl-invite-body" rows="6">${esc(s.templates.invite.body)}</textarea></div>
+      <h3>Invito (dettagli completi)</h3>
+      <div class="field"><label>Oggetto</label><input type="text" id="tpl-invito-subject" value="${esc(s.templates.invito.subject)}"></div>
+      <div class="field"><label>Testo</label><textarea id="tpl-invito-body" rows="6">${esc(s.templates.invito.body)}</textarea></div>
+      <h3>Promemoria</h3>
+      <div class="field"><label>Oggetto</label><input type="text" id="tpl-reminder-subject" value="${esc(s.templates.reminder.subject)}"></div>
+      <div class="field"><label>Testo</label><textarea id="tpl-reminder-body" rows="5">${esc(s.templates.reminder.body)}</textarea></div>
+      <button class="btn btn-primary" onclick="saveTemplatesFromForm()">Salva testi</button>
+    </div>
+
+    <div class="subnav" style="display:flex; gap:20px; border-bottom:1px solid var(--line); margin-bottom:20px; flex-wrap:wrap;">
+      <button class="nav-tab ${sub==='da-invitare'?'active':''}" onclick="state.invitiSubTab='da-invitare'; render();">Invia save the date (${sorted.length})</button>
+      <button class="nav-tab ${sub==='invito'?'active':''}" onclick="state.invitiSubTab='invito'; render();">Invia invito (${readyForInvito.length})</button>
+      <button class="nav-tab ${sub==='solleciti'?'active':''}" onclick="state.invitiSubTab='solleciti'; render();">Solleciti — in attesa (${pending.length})</button>
+    </div>
+
+    ${sub==='da-invitare'
+      ? (sorted.length===0 ? `<p>Nessun invitato in elenco ancora.</p>` : sorted.map(g=>contactRow(g,'invite')).join(''))
+      : sub==='invito'
+      ? (readyForInvito.length===0 ? `<p>Nessuno pronto per l'invito completo: manda prima il save the date a qualcuno, poi torna qui.</p>` : readyForInvito.map(g=>contactRow(g,'invito')).join(''))
+      : (pending.length===0 ? `<p>Tutti hanno risposto: nessun sollecito da mandare.</p>` : pending.map(g=>contactRow(g,'reminder')).join(''))
+    }
+
+    ${renderQrModal()}
+  `;
+}
+
+function renderQrModal(){
+  if(!state.qrModalUsername) return '';
+  if(state.qrModalUsername === '__universal__'){
+    const link = universalSiteLink();
+    return `
+      <div class="modal-overlay" onclick="if(event.target===this) closeQrModal();">
+        <div class="modal-box">
+          <p class="eyebrow">QR code universale</p>
+          <h3 style="margin:2px 0 0;">Uguale per tutti gli invitati</h3>
+          <img src="${qrCodeUrl(link, 500)}" alt="QR code universale del sito">
+          <p class="hint" style="word-break:break-all;">${esc(link)}</p>
+          <p class="hint">Fai clic destro sull'immagine → "Salva immagine come" per scaricarla in alta risoluzione. È lo stesso file per ogni invito: ricordati di stampare anche lo username di ciascun invitato in chiaro sulla carta (vedi elenco qui sotto).</p>
+          <button class="btn btn-ghost" style="margin-top:16px;" onclick="closeQrModal()">Chiudi</button>
+        </div>
+      </div>`;
+  }
+  const g = state.guests.find(x=>x.username===state.qrModalUsername);
+  if(!g) return '';
+  const link = personalLink(g.username);
+  return `
+    <div class="modal-overlay" onclick="if(event.target===this) closeQrModal();">
+      <div class="modal-box">
+        <p class="eyebrow">QR code invito personale</p>
+        <h3 style="margin:2px 0 0;">${esc(g.name)}</h3>
+        <img src="${qrCodeUrl(link, 500)}" alt="QR code per ${esc(g.name)}">
+        <p class="hint" style="word-break:break-all;">${esc(link)}</p>
+        <p class="hint">Fai clic destro sull'immagine → "Salva immagine come" per scaricarla in alta risoluzione, pronta per la stampa.</p>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:16px;">
+          ${!g.fullInviteSentAt ? `<button class="btn btn-primary" onclick="markInvitoSentViaQr('${g.username}')">Segna invito come consegnato</button>` : `<p class="sent-note">Invito già segnato come inviato il ${fmtDate(g.fullInviteSentAt)}.</p>`}
+          <button class="btn btn-ghost" onclick="closeQrModal()">Chiudi</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderAdminLuoghi(){
+  const s = state.settings;
+  return `
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Impostazioni generali</p>
+      <div class="swatch-row">
+        <div class="field"><label>Nomi degli sposi</label><input type="text" id="set-couple" value="${esc(s.coupleNames)}"></div>
+        <div class="field"><label>Data (etichetta libera)</label><input type="text" id="set-date" value="${esc(s.weddingDateLabel)}" placeholder="Es. 12 Settembre 2026"></div>
+        <div class="field"><label>Data esatta (per il conto alla rovescia)</label><input type="date" id="set-wdate" value="${esc(s.weddingDate)}"></div>
+      </div>
+      <div class="swatch-row">
+        <div class="field"><label>Password di accesso (per tutti)</label><input type="text" id="set-pass" value="${esc(s.password)}"></div>
+        <div class="field"><label>Nome utente sposi (accesso amministratore)</label><input type="text" id="set-admin" value="${esc(s.adminUsername)}"></div>
+      </div>
+      <div class="field">
+        <label style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="set-selfreg" ${s.allowSelfRegister?'checked':''}> Permetti a chi digita uno username non presente in elenco di auto-registrarsi (sconsigliato: meglio generare voi gli username)
+        </label>
+      </div>
+      <div class="field"><label>Titolo di benvenuto</label><input type="text" id="set-title" value="${esc(s.welcomeTitle)}"></div>
+      <div class="field"><label>Messaggio di benvenuto</label><textarea id="set-msg" rows="2">${esc(s.welcomeMessage)}</textarea></div>
+      <button class="btn btn-primary" onclick="saveSettingsFromForm()">Salva impostazioni</button>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Cerimonia</p>
+      <div class="swatch-row">
+        <div class="field"><label>Nome del luogo</label><input type="text" id="cer-name" value="${esc(s.ceremony.name)}" placeholder="Es. Chiesa di San Michele"></div>
+        <div class="field"><label>Indirizzo</label><input type="text" id="cer-addr" value="${esc(s.ceremony.address)}" placeholder="Via, città"></div>
+      </div>
+      <h3>Parcheggi in zona</h3>
+      ${s.ceremony.parking.map((p,i)=>`
+        <div class="list-item-row">
+          <div class="grow"><strong>${esc(p.name)}</strong>${p.address?' — '+esc(p.address):''}</div>
+          <button class="btn btn-outline-red btn-sm" onclick="removeParking(${i})">Rimuovi</button>
+        </div>`).join('')}
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <input type="text" id="parking-name" placeholder="Nome parcheggio" style="flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:9px;">
+        <input type="text" id="parking-addr" placeholder="Indirizzo" style="flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:9px;">
+        <button class="btn btn-ghost" onclick="addParking()">Aggiungi</button>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="saveSettingsFromForm()">Salva sezione cerimonia</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Ricevimento</p>
+      <div class="swatch-row">
+        <div class="field"><label>Nome del luogo</label><input type="text" id="rec-name" value="${esc(s.reception.name)}" placeholder="Es. Villa dei Cipressi"></div>
+        <div class="field"><label>Indirizzo</label><input type="text" id="rec-addr" value="${esc(s.reception.address)}" placeholder="Via, città"></div>
+      </div>
+      <div class="field"><label>Logo della location (URL, facoltativo)</label><input type="text" id="rec-logo" value="${esc(s.reception.logoUrl)}" placeholder="https://..."></div>
+      <button class="btn btn-primary" onclick="saveSettingsFromForm()">Salva sezione ricevimento</button>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Programma della giornata</p>
+      <p class="hint" style="margin-top:-4px;">Gli orari appaiono in cima alla scheda "Dove & quando" degli invitati. L'elenco si ordina da solo per orario.</p>
+      ${s.schedule.map((it,i)=>`
+        <div class="list-item-row">
+          <div class="grow"><strong>${esc(it.time)}</strong> — ${esc(it.title)}</div>
+          <button class="btn btn-outline-red btn-sm" onclick="removeScheduleItem(${i})">Rimuovi</button>
+        </div>`).join('')}
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <input type="time" id="sched-time" style="padding:9px 12px; border:1px solid var(--line); border-radius:9px;">
+        <input type="text" id="sched-title" placeholder="Es. Cerimonia in comune" style="flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:9px;" onkeydown="if(event.key==='Enter')addScheduleItem();">
+        <button class="btn btn-ghost" onclick="addScheduleItem()">Aggiungi</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Regalo (bonifico)</p>
+      <p>Se compili l'IBAN, agli invitati (dopo il login e la ricezione dell'invito) compare la scheda "Regalo" con i dati per il bonifico e un pulsante per farvi sapere quando l'hanno fatto. L'elenco di chi ha confermato è visibile solo a voi, nella scheda Invitati. Lascia vuoto l'IBAN per non mostrare nulla.</p>
+      <div class="field"><label>IBAN</label><input type="text" id="gift-iban" value="${esc(s.gift.iban)}" placeholder="IT00 X000 0000 0000 0000 0000 000"></div>
+      <div class="swatch-row">
+        <div class="field"><label>Intestatario (facoltativo)</label><input type="text" id="gift-holder" value="${esc(s.gift.holder)}" placeholder="Es. Ruggero Balletta e Claudia Mannino"></div>
+        <div class="field"><label>Causale suggerita (facoltativa)</label><input type="text" id="gift-causale" value="${esc(s.gift.causale)}" placeholder="Es. Regalo di nozze - [vostro nome]"></div>
+      </div>
+      <button class="btn btn-primary" onclick="saveSettingsFromForm()">Salva sezione regalo</button>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Playlist collaborativa</p>
+      <p>Se attiva, gli invitati (dopo aver ricevuto l'invito completo) trovano una scheda "Playlist" dove suggerire fino a 5 canzoni per il ricevimento. Vedete tutte le proposte aggregate nella scheda Invitati.</p>
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin-top:8px;">
+        <input type="checkbox" id="playlist-enabled" ${s.playlistEnabled?'checked':''} onchange="togglePlaylist(this.checked)">
+        <span>Attiva playlist collaborativa</span>
+      </label>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">Strutture per gli ospiti</p>
+      ${s.hotels.map((h,i)=>`
+        <div class="list-item-row">
+          <div class="grow">
+            <strong>${esc(h.name)}</strong><br>
+            <span class="hint">${esc(h.address)}${h.note?' — '+esc(h.note):''}</span>
+          </div>
+          <button class="btn btn-outline-red btn-sm" onclick="removeHotel(${i})">Rimuovi</button>
+        </div>`).join('')}
+      <div class="swatch-row" style="margin-top:10px;">
+        <input type="text" id="hotel-name" placeholder="Nome struttura" style="flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:9px;">
+        <input type="text" id="hotel-addr" placeholder="Indirizzo" style="flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:9px;">
+        <input type="text" id="hotel-note" placeholder="Nota (facoltativa)" style="flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:9px;">
+      </div>
+      <button class="btn btn-ghost" style="margin-top:10px;" onclick="addHotel()">Aggiungi struttura</button>
+    </div>
+  `;
+}
+
+function renderAdminTema(){
+  const th = state.settings.theme;
+  return `
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Colori e font</p>
+      <p>Le modifiche si applicano subito a tutta l'esperienza degli invitati.</p>
+      <div class="swatch-row">
+        <div class="field"><label>Colore sfondo</label><input type="color" id="th-bg" value="${th.bg}"></div>
+        <div class="field"><label>Colore pannelli</label><input type="color" id="th-panel" value="${th.panel}"></div>
+        <div class="field"><label>Colore testo</label><input type="color" id="th-ink" value="${th.ink}"></div>
+      </div>
+      <div class="swatch-row">
+        <div class="field"><label>Colore accento 1</label><input type="color" id="th-accent" value="${th.accent}"></div>
+        <div class="field"><label>Colore accento 2</label><input type="color" id="th-accent2" value="${th.accent2}"></div>
+        <div class="field">
+          <label>Font</label>
+          <select id="th-font">
+            ${Object.entries(FONT_PAIRS).map(([k,v])=>`<option value="${k}" ${th.fontPair===k?'selected':''}>${v.label}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveThemeFromForm()">Applica colori e font</button>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <p class="eyebrow">Immagine di copertina</p>
+      <p>Mostrata in alto nella pagina di accesso. Incolla il link diretto a una foto (caricala prima su Google Foto/Drive impostato come "chiunque abbia il link", Imgur, o usa il link di una foto già online).</p>
+      ${th.heroImage ? `<img src="${th.heroImage}" style="width:100%; max-height:220px; object-fit:cover; border-radius:12px; margin-bottom:12px; border:1px solid var(--line);" alt="Copertina">` : ''}
+      <input type="text" placeholder="https://..." value="${esc(th.heroImage)}" onchange="setThemeImageUrl('heroImage', this.value)">
+      ${th.heroImage ? `<button class="btn btn-outline-red btn-sm" style="margin-top:8px;" onclick="removeThemeImage('heroImage')">Rimuovi</button>` : ''}
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">Immagine di sfondo</p>
+      <p>Sfondo di tutto il sito, dietro i contenuti. Scegli una foto non troppo "affollata" per mantenere il testo leggibile.</p>
+      ${th.bgImage ? `<img src="${th.bgImage}" style="width:100%; max-height:220px; object-fit:cover; border-radius:12px; margin-bottom:12px; border:1px solid var(--line);" alt="Sfondo">` : ''}
+      <input type="text" placeholder="https://..." value="${esc(th.bgImage)}" onchange="setThemeImageUrl('bgImage', this.value)">
+      ${th.bgImage ? `<button class="btn btn-outline-red btn-sm" style="margin-top:8px;" onclick="removeThemeImage('bgImage')">Rimuovi</button>` : ''}
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <p class="eyebrow">Testi delle schede ospite</p>
+      <p>Personalizza tutto ciò che gli invitati leggono. Nei titoli puoi usare <strong>{nome}</strong> (nome dell'invitato) e <strong>{sposi}</strong> (i vostri nomi).</p>
+
+      <h3 style="margin-top:16px;">Scheda "Save the date"</h3>
+      ${textField('stdEyebrow','Etichetta in alto')}
+      ${textField('stdGreeting','Saluto (con {nome})')}
+      ${textField('stdWaiting','Nota — invito non ancora inviato', true)}
+      ${textField('stdArrivedHint','Nota — invito già inviato (utente collegato)', true)}
+
+      <h3 style="margin-top:18px;">Scheda "Conferma presenza"</h3>
+      ${textField('rsvpEyebrow','Etichetta in alto')}
+      ${textField('rsvpTitle','Titolo (con {nome})')}
+      ${textField('rsvpText','Testo', true)}
+      <div class="swatch-row">
+        <div class="field" style="flex:1;"><label>Pulsante "Sì"</label><input type="text" id="txt-rsvpYes" value="${esc(state.settings.texts.rsvpYes)}"></div>
+        <div class="field" style="flex:1;"><label>Pulsante "No"</label><input type="text" id="txt-rsvpNo" value="${esc(state.settings.texts.rsvpNo)}"></div>
+      </div>
+
+      <h3 style="margin-top:18px;">Scheda "Brunch"</h3>
+      ${textField('brunchEyebrow','Etichetta in alto')}
+      ${textField('brunchTitle','Titolo')}
+      ${textField('brunchText','Testo', true)}
+      <div class="swatch-row">
+        <div class="field" style="flex:1;"><label>Pulsante "Sì"</label><input type="text" id="txt-brunchYes" value="${esc(state.settings.texts.brunchYes)}"></div>
+        <div class="field" style="flex:1;"><label>Pulsante "No"</label><input type="text" id="txt-brunchNo" value="${esc(state.settings.texts.brunchNo)}"></div>
+      </div>
+
+      <button class="btn btn-primary" style="margin-top:8px;" onclick="saveTextsFromForm()">Salva testi</button>
+    </div>
+  `;
+}
+function textField(key, label, multiline){
+  const val = esc(state.settings.texts[key]);
+  const input = multiline
+    ? `<textarea id="txt-${key}" rows="2">${val}</textarea>`
+    : `<input type="text" id="txt-${key}" value="${val}">`;
+  return `<div class="field"><label>${esc(label)}</label>${input}</div>`;
+}
+
+/* ============================= MAIN RENDER ============================= */
+function renderSetupNeeded(){
+  return `
+  <div class="center-wrap">
+    <div class="card" style="max-width:480px;">
+      <p class="eyebrow">Configurazione necessaria</p>
+      <h2>Manca la connessione al database</h2>
+      <p>Questo sito usa un Google Sheet come database. Nel file HTML, in cima allo script, sostituisci <code>"INSERISCI_QUI"</code> in <code>APPS_SCRIPT_URL</code> con l'URL del tuo Web App di Google Apps Script, poi ricarica la pagina.</p>
+    </div>
+  </div>`;
+}
+function render(){
+  applyTheme();
+  const app = document.getElementById('app');
+  if(!backendReady){ app.innerHTML = renderSetupNeeded(); return; }
+  if(state.loading){ app.innerHTML = `<div class="center-wrap"><p>Caricamento…</p></div>`; return; }
+  if(state.settingsError){ app.innerHTML = `<div class="center-wrap"><div class="card" style="max-width:420px;text-align:center;"><p>Il sito non è riuscito a caricarsi.</p><button class="btn btn-primary" onclick="location.reload()">Riprova</button></div></div>`; return; }
+  if(!state.currentUser){ app.innerHTML = renderLogin(); return; }
+  if(state.currentUser.type === 'admin') app.innerHTML = renderAdminApp();
+  else app.innerHTML = renderGuestApp();
+}
+
+/* ============================= INIT ============================= */
+(async function(){
+  if(!backendReady){ render(); return; }
+  await loadSettings();
+  if(state.settingsError){ state.loading = false; render(); return; }
+  const params = new URLSearchParams(window.location.search);
+  const gParam = params.get('g');
+  if(gParam) state.prefillGuest = gParam;
+
+  const RECOVERY_TOKEN = 'reset-matrimonio-2026';
+  const resetParam = params.get('reset');
+  if(resetParam === RECOVERY_TOKEN){
+    const d = defaultSettings();
+    state.settings.password = d.password;
+    state.settings.adminUsername = d.adminUsername;
+    await saveSettings();
+    state.loginError = 'Password sposi ripristinata a "ruggeroclaudia" (utente "sposi"). Entra e cambiala subito da Luoghi & info.';
+  }
+
+  state.loading = false;
+
+  // Apertura diretta dal link personale (?g=username).
+  // - Se l'invito completo NON è ancora stato inviato: mostra il save the date senza login.
+  // - Se l'invito completo È stato inviato: porta al login (username precompilato), così
+  //   l'invitato arriva subito alla conferma presenza invece di rivedere il save the date.
+  if(gParam && !state.currentUser){
+    const guest = await fetchGuestByUsername(slugify(gParam));
+    if(guest){
+      if(guest.fullInviteSentAt){
+        state.prefillGuest = guest.username;
+        state.view = 'login';
+      } else {
+        state.currentUser = {type:'guest', authed:false};
+        state.guestRecord = guest;
+        state.view = 'guest';
+        state.guestTab = 'save-the-date';
+      }
+    }
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
