@@ -977,7 +977,7 @@ function renderGuestApp(){
     body = `
       <div class="card">
         <p class="eyebrow">${esc(t.stdEyebrow)}</p>
-        ${s.saveTheDate && s.saveTheDate.photo ? `<img src="${s.saveTheDate.photo}" alt="Save the date" style="width:100%; border-radius:12px; margin-bottom:14px; display:block;">` : ''}
+        ${s.saveTheDate && s.saveTheDate.photo ? `<img src="${s.saveTheDate.photo}" alt="Save the date" style="width:100%; max-height:45vh; object-fit:cover; object-position:center 70%; border-radius:12px; margin-bottom:14px; display:block;">` : ''}
         <h2>${esc(guestText(t.stdGreeting, g))}</h2>
         ${s.saveTheDate && s.saveTheDate.text ? `<p style="white-space:pre-line;">${esc(s.saveTheDate.text)}</p>` : ''}
         ${footer}
